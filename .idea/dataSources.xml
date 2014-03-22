@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" hash="2878685303">
+    <data-source source="LOCAL" name="Derby - datab@localhost" uuid="48363631-c95f-4cdc-be7f-5d981d382157">
+      <driver-ref>derby.remote</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.apache.derby.jdbc.ClientDriver</jdbc-driver>
+      <jdbc-url>jdbc:derby://localhost:1527/datab</jdbc-url>
+      <user-name>admin</user-name>
+      <user-password>dfcbdfcedfc7dfc3dfc4</user-password>
+      <libraries />
+    </data-source>
+  </component>
+</project>
+
