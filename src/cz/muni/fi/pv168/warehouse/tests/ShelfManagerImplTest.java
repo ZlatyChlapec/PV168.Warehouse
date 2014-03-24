@@ -28,7 +28,7 @@ public class ShelfManagerImplTest {
 
     @Before
     public void setUp() throws SQLException {
-        con = DriverManager.getConnection("jdbc:derby:memory:GraveManagerTest;create=true");
+        con = DriverManager.getConnection("jdbc:derby:memory:datab;create=true");
         con.prepareStatement("CREATE TABLE shelf ("
                 + "id bigint primary key generated always as identity,"
                 + "col int,"
