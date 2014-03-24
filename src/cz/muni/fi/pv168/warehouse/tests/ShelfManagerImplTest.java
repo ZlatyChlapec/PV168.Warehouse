@@ -2,9 +2,13 @@ package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,12 +24,26 @@ import static org.junit.Assert.*;
 public class ShelfManagerImplTest {
 
     private ShelfManagerImpl manager;
+    private Connection con;
 
     @Before
-    public void setUp() {
-        manager = new ShelfManagerImpl();
+    public void setUp() throws SQLException {
+        con = DriverManager.getConnection("jdbc:derby:memory:GraveManagerTest;create=true");
+        con.prepareStatement("CREATE TABLE shelf ("
+                + "id bigint primary key generated always as identity,"
+                + "col int,"
+                + "row int,"
+                + "maxWeight int not null,"
+                + "capacity int not null,"
+                + "secure boolean not null)").executeUpdate();
+        manager = new ShelfManagerImpl(con);
     }
 
+    @After
+    public void tearDown() throws SQLException {
+        con.prepareStatement("DROP TABLE shelf").executeUpdate();
+        con.close();
+    }
     @Test
     public void testCreateShelf() {
         Shelf shelf = newShelf(9, 4, 300.0D, 10, false);
