@@ -131,13 +131,6 @@ public class ShelfManagerImplTest {
         manager.deleteShelf(shelf);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteShelfWithId() {
-        Shelf shelf = newShelf(7, 3, 342.0D, 17, true);
-        shelf.setId(9);
-        manager.deleteShelf(shelf);
-    }
-
     @Test
     public void testListAllShelves() {
         assertTrue(manager.listAllShelves().isEmpty());
@@ -195,7 +188,7 @@ public class ShelfManagerImplTest {
 
         shelf.setRow(2);
         manager.updateShelf(shelf);
-        assertEquals(3, shelf.getColumn());
+        assertEquals(2, shelf.getColumn());
         assertEquals(2, shelf.getRow());
         assertEquals(45.0D, shelf.getMaxWeight(), 0.01D);
         assertEquals(10, shelf.getCapacity());
@@ -210,8 +203,8 @@ public class ShelfManagerImplTest {
 
         shelf.setMaxWeight(25.0D);
         manager.updateShelf(shelf);
-        assertEquals(3, shelf.getColumn());
-        assertEquals(2, shelf.getRow());
+        assertEquals(2, shelf.getColumn());
+        assertEquals(4, shelf.getRow());
         assertEquals(25.00D, shelf.getMaxWeight(), 0.01D);
         assertEquals(10, shelf.getCapacity());
         assertEquals(true, shelf.isSecure());
@@ -225,9 +218,9 @@ public class ShelfManagerImplTest {
 
         shelf.setCapacity(4);
         manager.updateShelf(shelf);
-        assertEquals(3, shelf.getColumn());
-        assertEquals(2, shelf.getRow());
-        assertEquals(25.0D, shelf.getMaxWeight(), 0.01D);
+        assertEquals(2, shelf.getColumn());
+        assertEquals(4, shelf.getRow());
+        assertEquals(45.0D, shelf.getMaxWeight(), 0.01D);
         assertEquals(4, shelf.getCapacity());
         assertEquals(true, shelf.isSecure());
     }
@@ -240,10 +233,10 @@ public class ShelfManagerImplTest {
 
         shelf.setSecure(false);
         manager.updateShelf(shelf);
-        assertEquals(3, shelf.getColumn());
-        assertEquals(2, shelf.getRow());
-        assertEquals(25.0D, shelf.getMaxWeight(), 0.01D);
-        assertEquals(4, shelf.getCapacity());
+        assertEquals(2, shelf.getColumn());
+        assertEquals(4, shelf.getRow());
+        assertEquals(45.0D, shelf.getMaxWeight(), 0.01D);
+        assertEquals(10, shelf.getCapacity());
         assertEquals(false, shelf.isSecure());
     }
 

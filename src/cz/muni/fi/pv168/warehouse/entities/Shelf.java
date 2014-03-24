@@ -140,15 +140,21 @@ public class Shelf {
     }
 
     @Override
+    public String toString() {
+        return "id = "+ id +"; column = "+ column +"; row = "+ row +"; maxWeight = "+
+                maxWeight +"; capacity = "+ capacity +"; secure = "+ secure +";";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Shelf)) return false;
 
         Shelf shelf = (Shelf) o;
 
-        if (id != shelf.id) return false;
+        //if (!id.equals(shelf.id)) return false;
 
-        return true;
+        return id.equals(shelf.id);
     }
 
     @Override
