@@ -41,6 +41,7 @@ public class ShelfManagerImplTest {
 
     @After
     public void tearDown() throws SQLException {
+        manager = null;
         con.prepareStatement("DROP TABLE shelf").executeUpdate();
         con.close();
     }
