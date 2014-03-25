@@ -124,13 +124,14 @@ public class Item {
 
         Item item = (Item) o;
 
-        if (id != item.id) return false;
+        //if (id != item.id) return false;
 
-        return true;
+        return id.equals(item.id);
     }
 
     @Override
     public int hashCode() {
-        return id;
+        int prime = 5;
+        return prime * id;
     }
 }

@@ -159,6 +159,7 @@ public class Shelf {
 
     @Override
     public int hashCode() {
-        return id;
+        int prime = 7;
+        return prime * id;
     }
 }
