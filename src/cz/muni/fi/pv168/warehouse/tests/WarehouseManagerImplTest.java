@@ -14,8 +14,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-import static junit.framework.Assert.*;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * tests class to Warehouse Manager.
@@ -171,7 +170,7 @@ public class WarehouseManagerImplTest {
         if(expected instanceof Item && actual instanceof Item) {
             assertEquals(((Item) expected).getId(), ((Item) actual).getId());
             assertEquals(((Item) expected).getInsertionDate(), ((Item) actual).getInsertionDate());
-            assertEquals(((Item) expected).getWeight(), ((Item) actual).getWeight());
+            assertEquals(((Item) expected).getWeight(), ((Item) actual).getWeight(), 0.01D);
             assertEquals(((Item) expected).isDangerous(), ((Item) actual).isDangerous());
         }
 
@@ -180,7 +179,7 @@ public class WarehouseManagerImplTest {
             assertEquals(((Shelf) expected).getCapacity(), ((Shelf) actual).getCapacity());
             assertEquals(((Shelf) expected).getColumn(), ((Shelf) actual).getColumn());
             assertEquals(((Shelf) expected).getRow(), ((Shelf) actual).getRow());
-            assertEquals(((Shelf) expected).getMaxWeight(), ((Shelf) actual).getMaxWeight());
+            assertEquals(((Shelf) expected).getMaxWeight(), ((Shelf) actual).getMaxWeight(), 0.01D);
             assertEquals(((Shelf) expected).isSecure(), ((Shelf) actual).isSecure());
         }
     }
