@@ -27,6 +27,8 @@ public class ItemManagerImplTest {
     private ItemManagerImpl manager;
     private Connection connection;
 
+
+    //// tto e jshdghgef
     @Before
     public void setUp() throws SQLException {
         connection = DriverManager.getConnection("jdbc:derby://localhost:1527/datab");
