@@ -22,25 +22,6 @@ public class Shelf {
 
     }
 
-//    /**
-//     * Constructor with all parameters. Creates new shelf.
-//     *
-//     * @param id Unique id of shelf.
-//     * @param column Specifies the column in which it is located.
-//     * @param row Specifies the row in which it is located.
-//     * @param maxWeight Specifies maximum load of a shelf.
-//     * @param capacity Specifies number of items that can be stored.
-//     * @param secure Specifies if shelf can store dangerous items.
-//     */
-//    public Shelf(Integer id, int column, int row, double maxWeight, int capacity, boolean secure) {
-//        this.id = id;
-//        this.column = column;
-//        this.row = row;
-//        this.maxWeight = maxWeight;
-//        this.capacity = capacity;
-//        this.secure = secure;
-//    }
-
     /**
      * Method returns id of a shelf.
      * @return id.
@@ -151,8 +132,6 @@ public class Shelf {
         if (!(o instanceof Shelf)) return false;
 
         Shelf shelf = (Shelf) o;
-
-        //if (!id.equals(shelf.id)) return false;
 
         return id.equals(shelf.id);
     }

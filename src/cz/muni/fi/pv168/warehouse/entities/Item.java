@@ -21,20 +21,6 @@ public class Item {
     public Item() {
     }
 
-//    /**
-//     * Constructor with all parameters. Creates new item.
-//     * @param id Unique id of item.
-//     * @param weight Specifies weight of an item.
-//     * @param insertionDate Specifies insertionDate date of an item.
-//     * @param dangerous Specifies if item is dangerous or not.
-//     */
-//    public Item(Integer id, double weight, Date insertionDate, boolean dangerous) {
-//        this.id = id;
-//        this.weight = weight;
-//        this.insertionDate = insertionDate;
-//        this.dangerous = dangerous;
-//    }
-
     /**
      * Method returns id of an item.
      * @return id.
@@ -124,14 +110,12 @@ public class Item {
 
         Item item = (Item) o;
 
-        //if (id != item.id) return false;
-
         return id.equals(item.id);
     }
 
     @Override
     public int hashCode() {
-        int prime = 5;
+        int prime = 13;
         return prime * id;
     }
 }
