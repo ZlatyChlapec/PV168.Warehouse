@@ -1,9 +1,11 @@
 package cz.muni.fi.pv168.warehouse.managers;
 
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
+import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,136 +20,187 @@ public class ShelfManagerImpl implements ShelfManager {
 
     private final static Logger logger = Logger.getLogger(ShelfManagerImpl.class .getName());
 
-    private Connection con;
+    private DataSource ds;
 
-    public ShelfManagerImpl(Connection con) {
-        this.con = con;
+    public ShelfManagerImpl(DataSource ds) {
+        this.ds = ds;
     }
 
     @Override
-    public Shelf createShelf(Shelf shelf) throws IllegalArgumentException {
-        try (PreparedStatement query = con.prepareStatement("INSERT INTO shelf(col, row, maxWeight, capacity, secure)" +
-                "VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+    public Shelf createShelf(Shelf shelf) throws MethodFailureException {
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("INSERT INTO shelf(col, row, maxWeight, capacity," +
+                    "secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
 
-            checkAllExceptId(shelf);
-            if (shelf.getId() != null)
-                throw new IllegalArgumentException("Id can't be set before.");
+                con.setAutoCommit(false);
+                checkAllExceptId(shelf);
+                if (shelf.getId() != null) {
+                    throw new IllegalArgumentException("Id can't be set before.");
+                }
 
-            query.setInt(1, shelf.getColumn());
-            query.setInt(2, shelf.getRow());
-            query.setDouble(3, shelf.getMaxWeight());
-            query.setInt(4, shelf.getCapacity());
-            query.setBoolean(5, shelf.isSecure());
+                query.setInt(1, shelf.getColumn());
+                query.setInt(2, shelf.getRow());
+                query.setDouble(3, shelf.getMaxWeight());
+                query.setInt(4, shelf.getCapacity());
+                query.setBoolean(5, shelf.isSecure());
 
-            if (query.executeUpdate() == 1) {
-                ResultSet rs = query.getGeneratedKeys();
-                while (rs.next()) {
-                    shelf.setId(rs.getInt(1));
+                if (query.executeUpdate() == 1) {
+                    try (ResultSet rs = query.getGeneratedKeys()) {
+                        while (rs.next()) {
+                            shelf.setId(rs.getInt(1));
+                        }
+                        con.commit();
+                        con.setAutoCommit(true);
+                        return shelf;
+                    }
+                } else {
+                    throw new SQLException("Too many inserts.");
+                }
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException e1) {
+                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
+                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                }
+                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+                throw new MethodFailureException("Crash while inserting into DB.", e);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+            throw new MethodFailureException("Crash while inserting into DB.", e);
+        }
+    }
+
+    @Override
+    public Shelf deleteShelf(Shelf shelf) throws MethodFailureException {
+        if (shelf.getId() == null || shelf == null) {
+            throw new NullPointerException("Id or shelf was null.");
+        }
+
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("DELETE FROM shelf WHERE id = ?")) {
+                query.setInt(1, shelf.getId());
+                int counter = query.executeUpdate();
+                if (counter != 1) {
+                    throw new SQLException("I think you deleted more then one record.");
                 }
                 return shelf;
-            } else {
-                throw new SQLException("Too many inserts.");
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException e1) {
+                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
+                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                }
+                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+                throw new MethodFailureException("Crash while inserting into DB.", e);
             }
         } catch (SQLException e) {
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-            }
             logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            return null;
+            throw new MethodFailureException("Crash while inserting into DB.", e);
         }
     }
 
     @Override
-    public Shelf deleteShelf(Shelf shelf) {
-        if (shelf.getId() == null || shelf == null)
-            throw new NullPointerException("Id or shelf was null.");
+    public List<Shelf> listAllShelves() throws MethodFailureException {
+        List<Shelf> list = new ArrayList<>();
 
-        try (PreparedStatement query = con.prepareStatement("DELETE FROM shelf WHERE id = ?")) {
-            query.setInt(1, shelf.getId());
-            int counter = query.executeUpdate();
-            if (counter != 1)
-                throw new SQLException("I think you deleted more then one record.");
-            return shelf;
-        } catch (SQLException e) {
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                logger.log(Level.SEVERE, "Crash while deleting.", e1);
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM shelf")) {
+                try (ResultSet rs = query.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(fillShelf(rs));
+                    }
+                    return list;
+                }
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException e1) {
+                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
+                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                }
+                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+                throw new MethodFailureException("Crash while inserting into DB.", e);
             }
-            logger.log(Level.SEVERE, "Crash while deleting.", e);
-            return null;
-        }
-    }
-
-    @Override
-    public List<Shelf> listAllShelves() {
-        List<Shelf> list = new LinkedList<>();
-        List<Shelf> temp = new LinkedList<>();
-
-        try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM shelf")) {
-            ResultSet rs = query.executeQuery();
-            while (rs.next())
-                temp.add(fillShelf(rs));
-            list.addAll(temp);
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while withdrawing from DB.", e);
+            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+            throw new MethodFailureException("Crash while inserting into DB.", e);
         }
-        return list;
     }
 
     @Override
-    public Shelf findShelfById(int id) {
-        try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
-                "FROM shelf WHERE id = ?")) {
-            query.setInt(1, id);
-            ResultSet rs = query.executeQuery();
+    public Shelf findShelfById(int id) throws MethodFailureException {
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
+                    "FROM shelf WHERE id = ?")) {
+                query.setInt(1, id);
+                ResultSet rs = query.executeQuery();
 
-            if (rs.next()) {
-                Shelf shelf = fillShelf(rs);
-                if (rs.next())
-                    throw new SQLException("Withdraw more than was supposed to.");
-                return shelf;
+                if (rs.next()) {
+                    Shelf shelf = fillShelf(rs);
+                    if (rs.next()) {
+                        throw new SQLException("Withdraw more than was supposed to.");
+                    }
+                    return shelf;
+                } else
+                    throw new SQLException("Nothing withdrew.");
+
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException e1) {
+                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
+                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                }
+                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+                throw new MethodFailureException("Crash while inserting into DB.", e);
             }
-            else
-                throw new SQLException("Nothing withdrew.");
-
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while withdrawing from DB.", e);
-            return null;
+            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+            throw new MethodFailureException("Crash while inserting into DB.", e);
         }
     }
 
     @Override
-    public void updateShelf(Shelf shelf) {
-        try {
-            PreparedStatement query = con.prepareStatement("UPDATE shelf SET col = ?,row = ?," +
-                    "maxWeight = ?,capacity = ?,secure = ? WHERE id = ?");
+    public void updateShelf(Shelf shelf) throws MethodFailureException {
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("UPDATE shelf SET col = ?,row = ?," +
+                    "maxWeight = ?,capacity = ?,secure = ? WHERE id = ?")) {
 
-            checkAllExceptId(shelf);
-            if (shelf.getId() == null)
-                throw new NullPointerException("id");
-            if (shelf.getId() < 0)
-                throw new IllegalArgumentException("id smaller then zero");
+                checkAllExceptId(shelf);
+                if (shelf.getId() == null) {
+                    throw new NullPointerException("id");
+                }
+                if (shelf.getId() < 0) {
+                    throw new IllegalArgumentException("id smaller then zero");
+                }
 
-            query.setInt(1, shelf.getColumn());
-            query.setInt(2, shelf.getRow());
-            query.setDouble(3, shelf.getMaxWeight());
-            query.setInt(4, shelf.getCapacity());
-            query.setBoolean(5, shelf.isSecure());
-            query.setInt(6, shelf.getId());
+                query.setInt(1, shelf.getColumn());
+                query.setInt(2, shelf.getRow());
+                query.setDouble(3, shelf.getMaxWeight());
+                query.setInt(4, shelf.getCapacity());
+                query.setBoolean(5, shelf.isSecure());
+                query.setInt(6, shelf.getId());
 
-            int counter = query.executeUpdate();
-            if (counter != 1)
-                throw new SQLException("Tried to update more than one row.");
-        } catch (SQLException e) {
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                logger.log(Level.SEVERE, "Crash while deleting.", e1);
+                int counter = query.executeUpdate();
+                if (counter != 1) {
+                    throw new SQLException("Tried to update more than one row.");
+                }
+            } catch (SQLException e) {
+                try {
+                    con.rollback();
+                } catch (SQLException e1) {
+                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
+                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                }
+                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+                throw new MethodFailureException("Crash while inserting into DB.", e);
             }
-            logger.log(Level.SEVERE, "Crash while updating.", e);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
+            throw new MethodFailureException("Crash while inserting into DB.", e);
         }
     }
 
@@ -163,15 +216,20 @@ public class ShelfManagerImpl implements ShelfManager {
     }
 
     private void checkAllExceptId(Shelf shelf) {
-        if (shelf == null)
+        if (shelf == null) {
             throw new NullPointerException("shelf");
-        if (shelf.getColumn() < 0)
+        }
+        if (shelf.getColumn() < 0) {
             throw new IllegalArgumentException("column smaller then zero");
-        if (shelf.getRow() < 0)
+        }
+        if (shelf.getRow() < 0) {
             throw new IllegalArgumentException("row smaller then zero");
-        if (shelf.getMaxWeight() <= 0.0D)
+        }
+        if (shelf.getMaxWeight() <= 0.0D) {
             throw new IllegalArgumentException("maxWeight can't be zero and lower");
-        if (shelf.getCapacity() <= 0)
+        }
+        if (shelf.getCapacity() <= 0) {
             throw new IllegalArgumentException("capacity can't be zero and lower");
+        }
     }
 }
