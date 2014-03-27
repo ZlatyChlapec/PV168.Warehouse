@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class Connection {
 
-    private final static Logger logger = Logger.getLogger(Connection.class .getName());
+    private final static Logger logger = Logger.getLogger(Connection.class.getName());
 
     public static ClientConnectionPoolDataSource ConnectionData() throws NamingException {
         ClientConnectionPoolDataSource cpds = new ClientConnectionPoolDataSource();
@@ -31,7 +31,7 @@ public class Connection {
         return cpds;
     }
 
-    public static String[] sqlReaderParse(BufferedReader br) throws MethodFailureException {
+    public static String[] sqlParser(BufferedReader br) throws MethodFailureException {
         StringBuilder result = new StringBuilder("");
 
         try {
@@ -48,16 +48,30 @@ public class Connection {
         return result.toString().split(";");
     }
 
+    /**
+     * This method will execute all commands from {@code is} on {@code con}.
+     * @param con connection on which we want to use commands
+     * @param is to get is use executeSQL(con, className.class.getResourceAsStream("fileName")); where class
+     *           name is name of class in same folder as file we want to read and fileName is name of file with
+     *           ending we want to read. Sure if you know how you can use different way.
+     * @throws MethodFailureException if executing fail this error will show up
+     */
     public static void executeSQL(java.sql.Connection con, InputStream is) throws MethodFailureException {
         try {
-            String[] createTables = sqlReaderParse(new BufferedReader(new InputStreamReader(is)));
-
-            for (String s : createTables) {
+            con.setAutoCommit(false);
+            String[] commands = sqlParser(new BufferedReader(new InputStreamReader(is)));
+            int counter = 0;
+            for (String s : commands) {
                 con.prepareStatement(s).executeUpdate();
             }
+            if (counter != commands.length) {
+                throw new SQLException("Something went wrong while executing.");
+            }
+            con.commit();
+            con.setAutoCommit(true);
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+            logger.log(Level.SEVERE, "Crash while executing commands DB.", e);
+            throw new MethodFailureException("Crash while executing commands DB.", e);
         }
     }
 }

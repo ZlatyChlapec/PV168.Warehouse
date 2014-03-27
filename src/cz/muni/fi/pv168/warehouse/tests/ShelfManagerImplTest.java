@@ -2,6 +2,7 @@ package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import cz.muni.fi.pv168.warehouse.managers.ShelfManager;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
 import org.apache.derby.jdbc.ClientDataSource;
 import org.junit.After;
@@ -26,15 +27,15 @@ import static org.junit.Assert.*;
  */
 public class ShelfManagerImplTest {
 
-    private ShelfManagerImpl manager;
+    private ShelfManager manager;
     private Connection con;
 
     @Before
-    public void setUp() throws SQLException, IOException, MethodFailureException {
+    public void setUp() throws SQLException, MethodFailureException {
         ClientDataSource ds = new ClientDataSource();
         ds.setDatabaseName("datab;create=true");
         con = ds.getConnection();
-        executeSQL(con, ShelfManagerImpl.class.getResource("CreateTables.sql").openStream());
+        executeSQL(con, ShelfManagerImpl.class.getResourceAsStream("CreateTables.sql"));
         manager = new ShelfManagerImpl(ds);
     }
 

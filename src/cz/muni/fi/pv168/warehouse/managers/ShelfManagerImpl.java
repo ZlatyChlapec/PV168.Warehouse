@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class ShelfManagerImpl implements ShelfManager {
 
-    private final static Logger logger = Logger.getLogger(ShelfManagerImpl.class .getName());
+    private final static Logger logger = Logger.getLogger(ShelfManagerImpl.class.getName());
 
     private DataSource ds;
 

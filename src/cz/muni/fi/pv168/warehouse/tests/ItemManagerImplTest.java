@@ -2,6 +2,7 @@ package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import cz.muni.fi.pv168.warehouse.managers.ItemManager;
 import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -24,7 +25,7 @@ import static org.junit.Assert.*;
  * @version 2014-3-23
  */
 public class ItemManagerImplTest {
-    private ItemManagerImpl manager;
+    private ItemManager manager;
     private Connection connection;
 
 

@@ -2,52 +2,79 @@ package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
+import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfCapacityException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfSecurityException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfWeightException;
-import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
+import cz.muni.fi.pv168.warehouse.managers.WarehouseManager;
 import cz.muni.fi.pv168.warehouse.managers.WarehouseManagerImpl;
+import org.apache.derby.jdbc.ClientDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
+import static cz.muni.fi.pv168.warehouse.db.Connection.executeSQL;
 import static org.junit.Assert.assertEquals;
 
 /**
- * tests class to Warehouse Manager.
- * @author Oliver Mrazik
- * @version 2014-3-7
+ * Tests class to Warehouse Manager.
+ *
+ * @author Oliver Mrázik & Martin Zaťko
+ * @version 0.1
  */
 public class WarehouseManagerImplTest {
-    private WarehouseManagerImpl warehouseManager;
-    private ItemManagerImpl itemManager;
-    private ShelfManagerImpl shelfManager;
+
+    private WarehouseManager warehouseManager;
+    private Connection con;
+
+    private void preparedEntities() {
+        Item item1 = new Item();
+        item1.setWeight(24.3D);
+        item1.setInsertionDate(new Date(1394030059000L));
+        item1.setStoreDays(20);
+        item1.setDangerous(true);
+
+        Item item2 = new Item();
+        item2.setWeight(24.3D);
+        item2.setInsertionDate(new Date(1395239659000L));
+        item2.setStoreDays(20);
+        item2.setDangerous(true);
+
+        Item item3 = newItem(40.0D, 60, false);
+    }
 
     @Before
-    public void setUp() throws Exception {
-        warehouseManager = new WarehouseManagerImpl();
-//        itemManager = new ItemManagerImpl();
-//        shelfManager = new ShelfManagerImpl();
+    public void setUp() throws MethodFailureException, SQLException {
+        ClientDataSource ds = new ClientDataSource();
+        ds.setDatabaseName("datab;create=true");
+        con = ds.getConnection();
+        executeSQL(con, ShelfManagerImpl.class.getResourceAsStream("CreateTables.sql"));
+
+        warehouseManager = new WarehouseManagerImpl(ds) {
+            @Override
+            public Date currentDate() {
+                return new Date(1395930859000L);
+            }
+        };
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() throws SQLException, IOException, MethodFailureException {
         warehouseManager = null;
-//        itemManager = null;
-//        shelfManager = null;
+        executeSQL(con, ShelfManagerImpl.class.getResource("DropTables.sql").openStream());
+        con.close();
     }
-
+    /*
     @Test
-    public void testFindShelfWithItem() throws Exception {
+    public void testFindShelfWithItem() {
         Item item = newItem(28.8D, 20, true);
-
         Shelf shelf = newShelf(0, 0, 200.00D, 4, true);
-
-//        itemManager.createItem(item);
-//        shelfManager.createShelf(shelf);
 
         warehouseManager.putItemOnShelf(shelf, item);
 
@@ -60,19 +87,14 @@ public class WarehouseManagerImplTest {
     public void testFindShelfWithItemWrong() throws Exception {
         warehouseManager.findShelfWithItem(null);
     }
-
+    */
     @Test
-    public void testListAllItemsOnShelf() throws Exception {
+    public void testListAllItemsOnShelf() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 200.00D, 4, false);
 
         Item item1 = newItem(28.8D, 20, true);
         Item item2 = newItem(128.7D, 24, false);
         Item item3 = newItem(40.0D, 60, false);
-
-//        shelfManager.createShelf(shelf);
-//        itemManager.createItem(item1);
-//        itemManager.createItem(item2);
-//        itemManager.createItem(item3);
 
         warehouseManager.putItemOnShelf(shelf, item1);
         warehouseManager.putItemOnShelf(shelf, item2);
@@ -91,24 +113,19 @@ public class WarehouseManagerImplTest {
     }
 
     @Test
-    public void testPutItemOnShelf() throws Exception {
+    public void testPutItemOnShelf() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 200.00D, 4, false);
-
         Item item = newItem(128.7D, 24, false);
 
-//        shelfManager.createShelf(shelf);
-//        itemManager.createItem(item);
-
         warehouseManager.putItemOnShelf(shelf, item);
-
-        Item actual = warehouseManager.withdrawItemFromShelf(shelf, item);
+        Item actual = warehouseManager.withdrawItemFromShelf(item);
 
         assertEquals(item, actual);
         assertDeepEquals(item, actual);
     }
 
     @Test(expected = ShelfSecurityException.class)
-    public void testPutItemOnShelfWrongSecurity() throws Exception {
+    public void testPutItemOnShelfWrongSecurity() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 200.00D, 4, false);
         Item item = newItem(128.7D, 24, true);
 
@@ -116,7 +133,7 @@ public class WarehouseManagerImplTest {
     }
 
     @Test(expected = ShelfCapacityException.class)
-    public void testPutItemOnShelfWrongCapacity() throws Exception {
+    public void testPutItemOnShelfWrongCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 200.00D, 1, false);
         Item item1 = newItem(18.2D, 16, false);
         Item item2 = newItem(4.7D, 24, false);
@@ -126,7 +143,7 @@ public class WarehouseManagerImplTest {
     }
 
     @Test(expected = ShelfWeightException.class)
-    public void testPutItemOnShelfWrongWeight() throws Exception {
+    public void testPutItemOnShelfWrongWeight() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 100.00D, 4, false);
         Item item1 = newItem(49.2D, 16, false);
         Item item2 = newItem(50.9D, 24, false);
@@ -135,14 +152,55 @@ public class WarehouseManagerImplTest {
         warehouseManager.putItemOnShelf(shelf, item2);
     }
 
-    @Test
-    public void testWithdrawItemFromShelf() throws Exception {
+    @Test(expected = NullPointerException.class)
+    public void testPutItemOnShelfWithNullItem() throws MethodFailureException {
+        Shelf shelf = newShelf(0, 0, 24.0D, 6, true);
+        warehouseManager.putItemOnShelf(shelf, null);
+    }
 
+    @Test(expected = NullPointerException.class)
+    public void testPutItemOnShelfWithNullShelf() throws MethodFailureException {
+        Item item = newItem(45.6D, 10, false);
+        warehouseManager.putItemOnShelf(null, item);
     }
 
     @Test
-    public void testRemoveAllExpiredItems() throws Exception {
+    public void testWithdrawItemFromShelf() throws MethodFailureException {
+        Item item = newItem(21.4D, 14, true);
+        Shelf shelf = newShelf(0, 0, 78.6D, 1, true);
 
+        warehouseManager.putItemOnShelf(shelf, item);
+        Item actual = warehouseManager.withdrawItemFromShelf(item);
+
+        assertEquals(item, actual);
+        assertDeepEquals(item, actual);
+    }
+
+    @Test
+    public void testRemoveAllExpiredItems() throws MethodFailureException {
+        Item item1 = new Item();
+        item1.setWeight(24.3D);
+        item1.setInsertionDate(new Date(1394030059000L));
+        item1.setStoreDays(20);
+        item1.setDangerous(true);
+
+        Item item2 = new Item();
+        item2.setWeight(24.3D);
+        item2.setInsertionDate(new Date(1395239659000L));
+        item2.setStoreDays(20);
+        item2.setDangerous(true);
+
+        Shelf shelf = newShelf(0, 0, 100.5D, 2, true);
+
+        warehouseManager.putItemOnShelf(shelf, item1);
+        warehouseManager.putItemOnShelf(shelf, item2);
+        warehouseManager.removeAllExpiredItems(warehouseManager.currentDate());
+        List<Item> list = warehouseManager.listAllItemsOnShelf(shelf);
+        for (Item i : list) {
+            assertEquals(1, list.size());
+            assertEquals(i, item2);
+            assertDeepEquals(i, item2);
+        }
     }
 
     private static Shelf newShelf(int column, int row, double maxWeight, int capacity, boolean secure) {
