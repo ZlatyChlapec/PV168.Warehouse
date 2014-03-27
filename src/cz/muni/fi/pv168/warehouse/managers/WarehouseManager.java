@@ -38,7 +38,7 @@ public interface WarehouseManager {
 
     /**
      * Method withdraw item from a shelf.
-    // * @param shelf specified shelf.
+     // * @param shelf specified shelf.
      * @param item specified item.
      */
     Item withdrawItemFromShelf(Item item) throws MethodFailureException ;
