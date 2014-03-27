@@ -5,7 +5,6 @@ import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 
 import javax.sql.DataSource;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -41,17 +40,12 @@ public class WarehouseManagerImpl implements WarehouseManager {
     }
 
     @Override
-    public Item withdrawItemFromShelf(Item item) throws MethodFailureException {
+    public Item withdrawItemFromShelf(Shelf shelf, Item item) throws MethodFailureException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException {
+    public List<Item> removeAllExpiredItems() throws MethodFailureException {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Date currentDate() {
-        return new Date();
     }
 }
