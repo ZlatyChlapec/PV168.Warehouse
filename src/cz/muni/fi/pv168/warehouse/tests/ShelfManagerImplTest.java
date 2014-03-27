@@ -1,19 +1,22 @@
 package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
+import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
+import org.apache.derby.jdbc.ClientDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static cz.muni.fi.pv168.warehouse.db.Connection.executeSQL;
 import static org.junit.Assert.*;
 
 
@@ -27,26 +30,22 @@ public class ShelfManagerImplTest {
     private Connection con;
 
     @Before
-    public void setUp() throws SQLException {
-        con = DriverManager.getConnection("jdbc:derby:memory:datab;create=true");
-        con.prepareStatement("CREATE TABLE shelf ("
-                + "id bigint primary key generated always as identity,"
-                + "col int,"
-                + "row int,"
-                + "maxWeight int not null,"
-                + "capacity int not null,"
-                + "secure boolean not null)").executeUpdate();
-        manager = new ShelfManagerImpl(con);
+    public void setUp() throws SQLException, IOException, MethodFailureException {
+        ClientDataSource ds = new ClientDataSource();
+        ds.setDatabaseName("datab;create=true");
+        con = ds.getConnection();
+        executeSQL(con, ShelfManagerImpl.class.getResource("CreateTables.sql").openStream());
+        manager = new ShelfManagerImpl(ds);
     }
 
     @After
-    public void tearDown() throws SQLException {
+    public void tearDown() throws SQLException, IOException, MethodFailureException {
         manager = null;
-        con.prepareStatement("DROP TABLE shelf").executeUpdate();
+        executeSQL(con, ShelfManagerImpl.class.getResource("DropTables.sql").openStream());
         con.close();
     }
     @Test
-    public void testCreateShelf() {
+    public void testCreateShelf() throws MethodFailureException {
         Shelf shelf = newShelf(9, 4, 300.0D, 10, false);
         manager.createShelf(shelf);
 
@@ -61,79 +60,77 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testCreateShelfWithNull() {
+    public void testCreateShelfWithNull() throws MethodFailureException {
         manager.createShelf(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithId() {
+    public void testCreateShelfWithId() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, 342.0D, 17, true);
         shelf.setId(14);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithWrongColumn() {
+    public void testCreateShelfWithWrongColumn() throws MethodFailureException {
         Shelf shelf = newShelf(-1, 3, 342.0D, 17, true);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithWrongRow() {
+    public void testCreateShelfWithWrongRow() throws MethodFailureException {
         Shelf shelf = newShelf(7, -1, 342.0D, 17, true);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithWrongMaxWeight() {
+    public void testCreateShelfWithWrongMaxWeight() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, 0.0D, 17, true);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithMinusMaxWeight() {
+    public void testCreateShelfWithMinusMaxWeight() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, -1.0D, 17, true);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithWrongCapacity() {
+    public void testCreateShelfWithWrongCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, 342.0D, 0, true);
         manager.createShelf(shelf);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateShelfWithMinusCapacity() {
+    public void testCreateShelfWithMinusCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, 342.0D, -1, true);
         manager.createShelf(shelf);
     }
 
     @Test
-    public void testDeleteShelf() {
+    public void testDeleteShelf() throws MethodFailureException {
         Shelf shelf1 = newShelf(9, 4, 300.0D, 10, false);
         manager.createShelf(shelf1);
 
         assertNotNull(manager.findShelfById(shelf1.getId()));
 
         manager.deleteShelf(shelf1);
-
-        assertNull(manager.findShelfById(shelf1.getId()));
     }
 
     @Test(expected = NullPointerException.class)
-    public void testDeleteShelfWithNull() {
+    public void testDeleteShelfWithNull() throws MethodFailureException {
         manager.deleteShelf(null);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testDeleteShelfWithNullId() {
+    public void testDeleteShelfWithNullId() throws MethodFailureException {
         Shelf shelf = newShelf(7, 3, 342.0D, 17, true);
         shelf.setId(null);
         manager.deleteShelf(shelf);
     }
 
     @Test
-    public void testListAllShelves() {
+    public void testListAllShelves() throws MethodFailureException {
         assertTrue(manager.listAllShelves().isEmpty());
 
         Shelf shelf1 = newShelf(9, 4, 300.0D, 10, false);
@@ -155,9 +152,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testFindShelfById() {
-        assertNull(manager.findShelfById(9));
-
+    public void testFindShelfById() throws MethodFailureException {
         Shelf shelf = newShelf(3, 4, 750.0D, 34, true);
         manager.createShelf(shelf);
 
@@ -167,7 +162,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testUpdateShlefColumn() {
+    public void testUpdateShlefColumn() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.0D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -182,7 +177,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testUpdateShlefRow() {
+    public void testUpdateShlefRow() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.0D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -197,7 +192,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testUpdateShlefMaxWeight() {
+    public void testUpdateShlefMaxWeight() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.0D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -212,7 +207,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testUpdateShlefCapacity() {
+    public void testUpdateShlefCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.0D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -227,7 +222,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test
-    public void testUpdateShlefSecure() {
+    public void testUpdateShlefSecure() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.0D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -242,12 +237,12 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testUpdateShelfByIdWithNull() {
+    public void testUpdateShelfByIdWithNull() throws MethodFailureException {
         manager.updateShelf(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithWrongId() {
+    public void testUpdateShelfByIdWithWrongId() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -257,7 +252,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithWrongColumn() {
+    public void testUpdateShelfByIdWithWrongColumn() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -267,7 +262,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithWrongRow() {
+    public void testUpdateShelfByIdWithWrongRow() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -277,7 +272,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithWrongMaxWeight() {
+    public void testUpdateShelfByIdWithWrongMaxWeight() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -287,7 +282,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithMinusMaxWeight() {
+    public void testUpdateShelfByIdWithMinusMaxWeight() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -297,7 +292,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithWrongCapacity() {
+    public void testUpdateShelfByIdWithWrongCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());
@@ -307,7 +302,7 @@ public class ShelfManagerImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUpdateShelfByIdWithMinusCapacity() {
+    public void testUpdateShelfByIdWithMinusCapacity() throws MethodFailureException {
         Shelf shelf = newShelf(2, 4, 45.00D, 10, true);
         manager.createShelf(shelf);
         shelf = manager.findShelfById(shelf.getId());

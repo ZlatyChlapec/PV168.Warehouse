@@ -29,7 +29,7 @@ public class ShelfManagerImpl implements ShelfManager {
     @Override
     public Shelf createShelf(Shelf shelf) throws MethodFailureException {
         try (Connection con = ds.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("INSERT INTO shelf(col, row, maxWeight, capacity," +
+            try (PreparedStatement query = con.prepareStatement("INSERT INTO ADMIN.SHELF(col, row, maxWeight, capacity," +
                     "secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
 
                 con.setAutoCommit(false);
@@ -79,7 +79,7 @@ public class ShelfManagerImpl implements ShelfManager {
         }
 
         try (Connection con = ds.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("DELETE FROM shelf WHERE id = ?")) {
+            try (PreparedStatement query = con.prepareStatement("DELETE FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, shelf.getId());
                 int counter = query.executeUpdate();
                 if (counter != 1) {
@@ -90,15 +90,15 @@ public class ShelfManagerImpl implements ShelfManager {
                 try {
                     con.rollback();
                 } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                    logger.log(Level.SEVERE, "Crash while deleting from DB.", e1);
+                    throw new MethodFailureException("Crash while deleting from DB.", e1);
                 }
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-                throw new MethodFailureException("Crash while inserting into DB.", e);
+                logger.log(Level.SEVERE, "Crash while deleting from DB.", e);
+                throw new MethodFailureException("Crash while deleting from DB.", e);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+            logger.log(Level.SEVERE, "Crash while deleting from DB.", e);
+            throw new MethodFailureException("Crash while deleting from DB.", e);
         }
     }
 
@@ -107,7 +107,7 @@ public class ShelfManagerImpl implements ShelfManager {
         List<Shelf> list = new ArrayList<>();
 
         try (Connection con = ds.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM shelf")) {
+            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM ADMIN.SHELF")) {
                 try (ResultSet rs = query.executeQuery()) {
                     while (rs.next()) {
                         list.add(fillShelf(rs));
@@ -118,15 +118,15 @@ public class ShelfManagerImpl implements ShelfManager {
                 try {
                     con.rollback();
                 } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                    logger.log(Level.SEVERE, "Crash while selecting from DB.", e1);
+                    throw new MethodFailureException("Crash while selecting from DB.", e1);
                 }
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-                throw new MethodFailureException("Crash while inserting into DB.", e);
+                logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
+                throw new MethodFailureException("Crash while selecting from DB.", e);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+            logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
+            throw new MethodFailureException("Crash while selecting from DB.", e);
         }
     }
 
@@ -134,7 +134,7 @@ public class ShelfManagerImpl implements ShelfManager {
     public Shelf findShelfById(int id) throws MethodFailureException {
         try (Connection con = ds.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
-                    "FROM shelf WHERE id = ?")) {
+                    "FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, id);
                 ResultSet rs = query.executeQuery();
 
@@ -151,22 +151,22 @@ public class ShelfManagerImpl implements ShelfManager {
                 try {
                     con.rollback();
                 } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                    logger.log(Level.SEVERE, "Crash while selecting from DB.", e1);
+                    throw new MethodFailureException("Crash while selecting from DB.", e1);
                 }
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-                throw new MethodFailureException("Crash while inserting into DB.", e);
+                logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
+                throw new MethodFailureException("Crash while selecting from DB.", e);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+            logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
+            throw new MethodFailureException("Crash while selecting from DB.", e);
         }
     }
 
     @Override
     public void updateShelf(Shelf shelf) throws MethodFailureException {
         try (Connection con = ds.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("UPDATE shelf SET col = ?,row = ?," +
+            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.SHELF SET col = ?,row = ?," +
                     "maxWeight = ?,capacity = ?,secure = ? WHERE id = ?")) {
 
                 checkAllExceptId(shelf);
@@ -192,15 +192,15 @@ public class ShelfManagerImpl implements ShelfManager {
                 try {
                     con.rollback();
                 } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                    logger.log(Level.SEVERE, "Crash while updating DB.", e1);
+                    throw new MethodFailureException("Crash while updating DB.", e1);
                 }
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-                throw new MethodFailureException("Crash while inserting into DB.", e);
+                logger.log(Level.SEVERE, "Crash while updating DB.", e);
+                throw new MethodFailureException("Crash while updating DB.", e);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
         }
     }
 
