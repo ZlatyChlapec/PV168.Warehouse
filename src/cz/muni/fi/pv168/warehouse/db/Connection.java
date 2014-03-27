@@ -63,15 +63,27 @@ public class Connection {
             int counter = 0;
             for (String s : commands) {
                 con.prepareStatement(s).executeUpdate();
+                //need to find out why this is not working!
+                //if (con.prepareStatement(s).executeUpdate() != 1) {
+                //    throw new SQLException("BUBU");
+                //}
+                counter++;
             }
             if (counter != commands.length) {
                 throw new SQLException("Something went wrong while executing.");
             }
+
             con.commit();
-            con.setAutoCommit(true);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Crash while executing commands DB.", e);
             throw new MethodFailureException("Crash while executing commands DB.", e);
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Crash while commiting.", e);
+                throw new MethodFailureException("Crash while commiting.", e);
+            }
         }
     }
 }
