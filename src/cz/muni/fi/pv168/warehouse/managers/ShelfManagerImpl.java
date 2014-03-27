@@ -81,10 +81,13 @@ public class ShelfManagerImpl implements ShelfManager {
         try (Connection con = ds.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("DELETE FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, shelf.getId());
+                con.setAutoCommit(false);
                 int counter = query.executeUpdate();
                 if (counter != 1) {
                     throw new SQLException("I think you deleted more then one record.");
                 }
+                con.commit();
+                con.setAutoCommit(true);
                 return shelf;
             } catch (SQLException e) {
                 try {
@@ -108,10 +111,13 @@ public class ShelfManagerImpl implements ShelfManager {
 
         try (Connection con = ds.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM ADMIN.SHELF")) {
+                con.setAutoCommit(false);
                 try (ResultSet rs = query.executeQuery()) {
                     while (rs.next()) {
                         list.add(fillShelf(rs));
                     }
+                    con.commit();
+                    con.setAutoCommit(true);
                     return list;
                 }
             } catch (SQLException e) {
@@ -136,6 +142,7 @@ public class ShelfManagerImpl implements ShelfManager {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
                     "FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, id);
+                con.setAutoCommit(false);
                 ResultSet rs = query.executeQuery();
 
                 if (rs.next()) {
@@ -143,6 +150,8 @@ public class ShelfManagerImpl implements ShelfManager {
                     if (rs.next()) {
                         throw new SQLException("Withdraw more than was supposed to.");
                     }
+                    con.commit();
+                    con.setAutoCommit(true);
                     return shelf;
                 } else
                     throw new SQLException("Nothing withdrew.");
@@ -169,6 +178,7 @@ public class ShelfManagerImpl implements ShelfManager {
             try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.SHELF SET col = ?,row = ?," +
                     "maxWeight = ?,capacity = ?,secure = ? WHERE id = ?")) {
 
+                con.setAutoCommit(false);
                 checkAllExceptId(shelf);
                 if (shelf.getId() == null) {
                     throw new NullPointerException("id");
@@ -188,6 +198,8 @@ public class ShelfManagerImpl implements ShelfManager {
                 if (counter != 1) {
                     throw new SQLException("Tried to update more than one row.");
                 }
+                con.commit();
+                con.setAutoCommit(true);
             } catch (SQLException e) {
                 try {
                     con.rollback();
