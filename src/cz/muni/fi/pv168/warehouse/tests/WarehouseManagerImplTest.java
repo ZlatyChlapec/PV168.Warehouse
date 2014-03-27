@@ -119,7 +119,7 @@ public class WarehouseManagerImplTest {
         Item item = newItem(128.7D, 24, false);
 
         warehouseManager.putItemOnShelf(shelf, item);
-        Item actual = warehouseManager.withdrawItemFromShelf(item);
+        Item actual = warehouseManager.withdrawItemFromShelf(shelf, item);
 
         assertEquals(item, actual);
         assertDeepEquals(item, actual);
@@ -171,7 +171,7 @@ public class WarehouseManagerImplTest {
         Shelf shelf = newShelf(0, 0, 78.6D, 1, true);
 
         warehouseManager.putItemOnShelf(shelf, item);
-        Item actual = warehouseManager.withdrawItemFromShelf(item);
+        Item actual = warehouseManager.withdrawItemFromShelf(shelf, item);
 
         assertEquals(item, actual);
         assertDeepEquals(item, actual);
@@ -195,7 +195,7 @@ public class WarehouseManagerImplTest {
 
         warehouseManager.putItemOnShelf(shelf, item1);
         warehouseManager.putItemOnShelf(shelf, item2);
-        warehouseManager.removeAllExpiredItems(warehouseManager.currentDate());
+        //warehouseManager.removeAllExpiredItems(warehouseManager.currentDate());
         List<Item> list = warehouseManager.listAllItemsOnShelf(shelf);
         for (Item i : list) {
             assertEquals(1, list.size());
