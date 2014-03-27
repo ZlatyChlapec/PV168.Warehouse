@@ -19,21 +19,29 @@ import java.util.logging.Logger;
 public class ShelfManagerImpl implements ShelfManager {
 
     private final static Logger logger = Logger.getLogger(ShelfManagerImpl.class.getName());
+    private DataSource dataSource;
 
-    private DataSource ds;
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
-    public ShelfManagerImpl(DataSource ds) {
-        this.ds = ds;
+    private void checkDataSource() {
+        if (dataSource == null) {
+            throw new IllegalStateException("Error: Data source is not set");
+        }
     }
 
     @Override
     public Shelf createShelf(Shelf shelf) throws MethodFailureException {
-        try (Connection con = ds.getConnection()) {
+
+        checkDataSource();
+        checkAllExceptId(shelf);
+
+        try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("INSERT INTO ADMIN.SHELF(col, row, maxWeight, capacity," +
                     "secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
 
                 con.setAutoCommit(false);
-                checkAllExceptId(shelf);
                 if (shelf.getId() != null) {
                     throw new IllegalArgumentException("Id can't be set before.");
                 }
@@ -74,11 +82,13 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public Shelf deleteShelf(Shelf shelf) throws MethodFailureException {
+
+        checkDataSource();
         if (shelf.getId() == null || shelf == null) {
             throw new NullPointerException("Id or shelf was null.");
         }
 
-        try (Connection con = ds.getConnection()) {
+        try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("DELETE FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, shelf.getId());
                 con.setAutoCommit(false);
@@ -107,9 +117,11 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public List<Shelf> listAllShelves() throws MethodFailureException {
+
+        checkDataSource();
         List<Shelf> list = new ArrayList<>();
 
-        try (Connection con = ds.getConnection()) {
+        try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM ADMIN.SHELF")) {
                 con.setAutoCommit(false);
                 try (ResultSet rs = query.executeQuery()) {
@@ -138,7 +150,9 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public Shelf findShelfById(int id) throws MethodFailureException {
-        try (Connection con = ds.getConnection()) {
+
+        checkDataSource();
+        try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
                     "FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, id);
@@ -174,7 +188,9 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public void updateShelf(Shelf shelf) throws MethodFailureException {
-        try (Connection con = ds.getConnection()) {
+
+        checkDataSource();
+        try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.SHELF SET col = ?,row = ?," +
                     "maxWeight = ?,capacity = ?,secure = ? WHERE id = ?")) {
 

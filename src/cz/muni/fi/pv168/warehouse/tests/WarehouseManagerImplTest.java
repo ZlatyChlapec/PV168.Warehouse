@@ -1,5 +1,6 @@
 package cz.muni.fi.pv168.warehouse.tests;
 
+import cz.muni.fi.pv168.warehouse.database.Tools;
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
@@ -7,19 +8,16 @@ import cz.muni.fi.pv168.warehouse.exceptions.ShelfCapacityException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfSecurityException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfWeightException;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
-import cz.muni.fi.pv168.warehouse.managers.WarehouseManager;
 import cz.muni.fi.pv168.warehouse.managers.WarehouseManagerImpl;
-import org.apache.derby.jdbc.ClientDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
-import static cz.muni.fi.pv168.warehouse.db.Connection.executeSQL;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -30,8 +28,15 @@ import static org.junit.Assert.assertEquals;
  */
 public class WarehouseManagerImplTest {
 
-    private WarehouseManager warehouseManager;
-    private Connection con;
+    private WarehouseManagerImpl warehouseManager;
+    private DataSource dataSource;
+
+    private static DataSource prepareDataSource() {
+        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
+        ds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        ds.setUrl("jdbc:derby:memory:test-datab;create=true");
+        return ds;
+    }
 
     private void preparedEntities() {
         Item item1 = new Item();
@@ -51,28 +56,24 @@ public class WarehouseManagerImplTest {
 
     @Before
     public void setUp() throws MethodFailureException, SQLException {
-        ClientDataSource ds = new ClientDataSource();
-        ds.setDatabaseName("datab;create=true");
-        con = ds.getConnection();
-        executeSQL(con, ShelfManagerImpl.class.getResourceAsStream("CreateTables.sql"));
-
-        warehouseManager = new WarehouseManagerImpl(ds) {
-            @Override
-            public Date currentDate() {
-                return new Date(1395930859000L);
-            }
-        };
+        dataSource = prepareDataSource();
+        Tools.executeSQL(dataSource, WarehouseManagerImpl.class.getResource("CreateTables.sql"));
+//        warehouseManager = new WarehouseManagerImpl() {
+//            @Override
+//            public Date currentDate() {
+//                return new Date(1395930859000L);
+//            }
+//        };
     }
 
     @After
     public void tearDown() throws SQLException, IOException, MethodFailureException {
         warehouseManager = null;
-        executeSQL(con, ShelfManagerImpl.class.getResource("DropTables.sql").openStream());
-        con.close();
+        Tools.executeSQL(dataSource, ShelfManagerImpl.class.getResource("DropTables.sql"));
     }
-    /*
+
     @Test
-    public void testFindShelfWithItem() {
+    public void testFindShelfWithItem() throws MethodFailureException {
         Item item = newItem(28.8D, 20, true);
         Shelf shelf = newShelf(0, 0, 200.00D, 4, true);
 
@@ -84,10 +85,10 @@ public class WarehouseManagerImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testFindShelfWithItemWrong() throws Exception {
+    public void testFindShelfWithItemWrong() throws Exception, MethodFailureException {
         warehouseManager.findShelfWithItem(null);
     }
-    */
+
     @Test
     public void testListAllItemsOnShelf() throws MethodFailureException {
         Shelf shelf = newShelf(0, 0, 200.00D, 4, false);

@@ -15,12 +15,12 @@ import java.util.List;
  */
 public interface WarehouseManager {
 
-    ///**
-    // * Method will find shelf with specified item.
-    // * @param item specified item.
-    // * @return required shelf
-    // */
-    //Shelf findShelfWithItem(Item item) throws MethodFailureException;
+    /**
+    * Method will find shelf with specified item.
+    * @param item specified item.
+    * @return required shelf
+    */
+    Shelf findShelfWithItem(Item item) throws MethodFailureException;
 
     /**
      * Method will list all items on specified shelf.

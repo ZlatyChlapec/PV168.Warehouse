@@ -2,20 +2,18 @@ package cz.muni.fi.pv168.warehouse.tests;
 
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
-import cz.muni.fi.pv168.warehouse.managers.ItemManager;
 import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
+import cz.muni.fi.pv168.warehouse.database.Tools;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static org.junit.Assert.*;
 
 /**
@@ -25,27 +23,28 @@ import static org.junit.Assert.*;
  * @version 2014-3-23
  */
 public class ItemManagerImplTest {
-    private ItemManager manager;
-    private Connection connection;
 
+    private ItemManagerImpl manager;
+    private DataSource dataSource;
 
-    //// tto e jshdghgef
+    private static DataSource prepareDataSource() {
+        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
+        ds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        ds.setUrl("jdbc:derby:memory:test-datab;create=true");
+        return ds;
+    }
+
     @Before
-    public void setUp() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:derby://localhost:1527/datab");
-        connection.prepareStatement("CREATE TABLE ADMIN.ITEM ("
-                + " ID INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,"
-                + " WEIGHT DOUBLE NOT NULL,"
-                + " INSERTIONDATE DATE DEFAULT CURRENT DATE,"
-                + " STOREDAYS INT NOT NULL,"
-                + " DANGEROUS BOOLEAN NOT NULL )").executeUpdate();
-        manager = new ItemManagerImpl(connection);
+    public void setUp() throws SQLException, MethodFailureException {
+        dataSource = prepareDataSource();
+        Tools.executeSQL(dataSource, ItemManagerImpl.class.getResource("CreateTables.sql"));
+        manager = new ItemManagerImpl();
+        manager.setDataSource(dataSource);
     }
 
     @After
-    public void tearDown() throws SQLException {
-        connection.prepareStatement("DROP TABLE ADMIN.ITEM").execute();
-        connection.close();
+    public void tearDown() throws SQLException, MethodFailureException {
+        Tools.executeSQL(dataSource, ItemManagerImpl.class.getResource("DropTables.sql"));
         manager = null;
     }
 

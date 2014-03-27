@@ -18,17 +18,22 @@ import java.util.logging.Logger;
 public class WarehouseManagerImpl implements WarehouseManager {
 
     private final static Logger logger = Logger.getLogger(WarehouseManagerImpl.class.getName());
+    private DataSource dataSource;
 
-    private DataSource ds;
-
-    public WarehouseManagerImpl(DataSource ds) throws MethodFailureException {
-        this.ds = ds;
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
-    //@Override
-    //public Shelf findShelfWithItem(Item item) throws MethodFailureException {
-    //    throw new UnsupportedOperationException("Not supported yet.");
-    //}
+    private void checkDataSource() {
+        if (dataSource == null) {
+            throw new IllegalStateException("Error: Data source is not set");
+        }
+    }
+
+    @Override
+    public Shelf findShelfWithItem(Item item) throws MethodFailureException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     @Override
     public List<Item> listAllItemsOnShelf(Shelf shelf) throws MethodFailureException {

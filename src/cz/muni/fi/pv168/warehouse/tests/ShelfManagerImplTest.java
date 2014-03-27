@@ -1,23 +1,21 @@
 package cz.muni.fi.pv168.warehouse.tests;
 
+import cz.muni.fi.pv168.warehouse.database.Tools;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
-import cz.muni.fi.pv168.warehouse.managers.ShelfManager;
+import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
-import org.apache.derby.jdbc.ClientDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.sql.Connection;
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static cz.muni.fi.pv168.warehouse.db.Connection.executeSQL;
 import static org.junit.Assert.*;
 
 
@@ -27,24 +25,30 @@ import static org.junit.Assert.*;
  */
 public class ShelfManagerImplTest {
 
-    private ShelfManager manager;
-    private Connection con;
+    private ShelfManagerImpl manager;
+    private DataSource dataSource;
+
+    private static DataSource prepareDataSource() {
+        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
+        ds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        ds.setUrl("jdbc:derby:memory:test-datab;create=true");
+        return ds;
+    }
 
     @Before
     public void setUp() throws SQLException, MethodFailureException {
-        ClientDataSource ds = new ClientDataSource();
-        ds.setDatabaseName("datab;create=true");
-        con = ds.getConnection();
-        executeSQL(con, ShelfManagerImpl.class.getResourceAsStream("CreateTables.sql"));
-        manager = new ShelfManagerImpl(ds);
+        dataSource = prepareDataSource();
+        Tools.executeSQL(dataSource, ItemManagerImpl.class.getResource("CreateTables.sql"));
+        manager = new ShelfManagerImpl();
+        manager.setDataSource(dataSource);
     }
 
     @After
-    public void tearDown() throws SQLException, IOException, MethodFailureException {
+    public void tearDown() throws SQLException, MethodFailureException {
+        Tools.executeSQL(dataSource, ItemManagerImpl.class.getResource("DropTables.sql"));
         manager = null;
-        executeSQL(con, ShelfManagerImpl.class.getResource("DropTables.sql").openStream());
-        con.close();
     }
+
     @Test
     public void testCreateShelf() throws MethodFailureException {
         Shelf shelf = newShelf(9, 4, 300.0D, 10, false);
