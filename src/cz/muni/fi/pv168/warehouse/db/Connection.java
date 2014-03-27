@@ -63,7 +63,7 @@ public class Connection {
             int counter = 0;
             for (String s : commands) {
                 con.prepareStatement(s).executeUpdate();
-                //need to find out why this is not working!
+                //need to find out why this is not working!!
                 //if (con.prepareStatement(s).executeUpdate() != 1) {
                 //    throw new SQLException("BUBU");
                 //}
