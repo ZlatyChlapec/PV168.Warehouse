@@ -4,6 +4,7 @@ import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,5 +47,5 @@ public interface WarehouseManager {
      * Method will remove all expired items from database.
      * @return list of removed items.
      */
-    List<Item> removeAllExpiredItems() throws MethodFailureException ;
+    List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException ;
 }

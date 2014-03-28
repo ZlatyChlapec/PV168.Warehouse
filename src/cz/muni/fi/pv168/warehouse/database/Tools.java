@@ -7,10 +7,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.sql.Connection;
 
 /**
  * @author Slapy
@@ -28,9 +28,8 @@ public class Tools {
      */
     public static String[] sqlParser(URL url) throws MethodFailureException {
 
-        try {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"))) {
             StringBuilder result = new StringBuilder();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
 
             String line = bufferedReader.readLine();
             while (line != null) {
@@ -41,8 +40,8 @@ public class Tools {
             return result.toString().split(";");
 
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Reading of file was not successful.", ex);
-            throw new MethodFailureException("Reading of file was not successful.", ex);
+            logger.log(Level.SEVERE, "Reading from URL was not successful.", ex);
+            throw new MethodFailureException("Reading from URL was not successful.", ex);
         }
     }
 
@@ -54,13 +53,19 @@ public class Tools {
      */
     public static void executeSQL(DataSource dataSource, URL url) throws MethodFailureException {
 
-        try (Connection connection = dataSource.getConnection()){
+        try (Connection connection = dataSource.getConnection()) {
 
-            for (String sqlStatement : sqlParser(url)) {
-                connection.prepareStatement(sqlStatement).executeUpdate();
+            try {
+                connection.setAutoCommit(false);
+
+                for (String sqlStatement : sqlParser(url)) {
+                    connection.prepareStatement(sqlStatement).executeUpdate();
+                }
+
+                connection.commit();
+            } finally {
+                connection.setAutoCommit(true);
             }
-
-            connection.commit();
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Crash while executing commands DB.", ex);
             throw new MethodFailureException("Crash while executing commands DB.", ex);
