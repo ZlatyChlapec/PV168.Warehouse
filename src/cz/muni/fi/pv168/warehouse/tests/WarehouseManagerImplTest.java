@@ -112,8 +112,8 @@ public class WarehouseManagerImplTest {
         warehouseManager.putItemOnShelf(shelf2, item1);
         warehouseManager.putItemOnShelf(shelf2, item2);
 
-        List<Item> expected = Arrays.asList(item1, item2);
-        List<Item> actual = warehouseManager.listAllItemsOnShelf(shelf1);
+        List<Item> expected = Arrays.asList(itemManager.findItemById(item1.getId()), itemManager.findItemById(item2.getId()));
+        List<Item> actual = warehouseManager.listAllItemsOnShelf(shelf2);
 
         Collections.sort(expected, itemIdComparator);
         Collections.sort(actual, itemIdComparator);
