@@ -29,7 +29,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="tomcat-jdbc" level="project" />
+    <orderEntry type="library" name="tomcat" level="project" />
   </component>
 </module>
 
