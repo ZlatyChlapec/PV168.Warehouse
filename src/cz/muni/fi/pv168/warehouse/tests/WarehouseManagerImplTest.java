@@ -81,8 +81,11 @@ public class WarehouseManagerImplTest {
         dataSource = prepareDataSource();
         Tools.executeSQL(dataSource, WarehouseManagerImpl.class.getResource("CreateTables.sql"));
         warehouseManager = new WarehouseManagerImpl();
+        warehouseManager.setDataSource(dataSource);
         shelfManager = new ShelfManagerImpl();
+        shelfManager.setDataSource(dataSource);
         itemManager = new ItemManagerImpl();
+        itemManager.setDataSource(dataSource);
         preparedEntities();
     }
 

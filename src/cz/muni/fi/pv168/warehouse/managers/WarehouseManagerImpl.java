@@ -3,10 +3,18 @@ package cz.muni.fi.pv168.warehouse.managers;
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import cz.muni.fi.pv168.warehouse.exceptions.ShelfCapacityException;
+import cz.muni.fi.pv168.warehouse.exceptions.ShelfSecurityException;
+import cz.muni.fi.pv168.warehouse.exceptions.ShelfWeightException;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,7 +40,54 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
     @Override
     public Shelf findShelfWithItem(Item item) throws MethodFailureException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        int shelfid;
+        Shelf shelf;
+
+        checkDataSource();
+        checkItem(item);
+
+        try (Connection con = dataSource.getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement query = con.prepareStatement("SELECT shelfid FROM ADMIN.ITEM WHERE id = ?")) {
+                query.setInt(1, item.getId());
+                try (ResultSet rs = query.executeQuery()) {
+                    if (rs.next()) {
+                        shelfid = rs.getInt("shelfid");
+                        if (rs.next()) {
+                            throw new SQLException("Too many things in rs.");
+                        }
+                    } else {
+                        throw new SQLException("Something went wrong while withdrawing from db.");
+                    }
+
+                    try (PreparedStatement query1 = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
+                            "FROM ADMIN.SHELF WHERE id = ?")) {
+                        query1.setInt(1, shelfid);
+                        try (ResultSet rs1 = query1.executeQuery()) {
+                            if (rs1.next()) {
+                                shelf = fillShelf(rs1);
+                                if (rs1.next()) {
+                                    throw new SQLException("Too many things in rs.");
+                                }
+                                con.commit();
+                                return shelf;
+                            } else {
+                                throw new SQLException("Something went wrong while withdrawing from db.");
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                con.rollback();
+                logger.log(Level.SEVERE, "Crash while searching for item.", e);
+                throw new MethodFailureException("Crash while searching for item.", e);
+            } finally {
+                con.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while searching for item.", e);
+            throw new MethodFailureException("Crash while searching for item.", e);
+        }
     }
 
     @Override
@@ -42,7 +97,32 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
     @Override
     public void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException {
+        checkDataSource();
+        checkShelf(shelf);
+        checkItem(item);
 
+        try (Connection con = dataSource.getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = ? WHERE id = ?")) {
+                query.setInt(1, shelf.getId());
+                query.setInt(2, item.getId());
+
+                //checkShelfCSW(shelf, item);
+
+                if (query.executeUpdate() != 1) {
+                    throw new SQLException("Something went wrong while putting on shelf.");
+                }
+            } catch (SQLException e) {
+                con.rollback();
+                logger.log(Level.SEVERE, "Crash while updating DB.", e);
+                throw new MethodFailureException("Crash while updating DB.", e);
+            } finally {
+                con.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
+        }
     }
 
     @Override
@@ -53,5 +133,46 @@ public class WarehouseManagerImpl implements WarehouseManager {
     @Override
     public List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private Shelf fillShelf(ResultSet rs) throws SQLException{
+        Shelf shelf = new Shelf();
+        shelf.setId(rs.getInt("id"));
+        shelf.setColumn(rs.getInt("col"));
+        shelf.setRow(rs.getInt("row"));
+        shelf.setMaxWeight(rs.getDouble("maxWeight"));
+        shelf.setCapacity(rs.getInt("capacity"));
+        shelf.setSecure(rs.getBoolean("secure"));
+        return shelf;
+    }
+
+    private void checkItem(Item item) {
+        if (item.getId() == null) {
+            throw new NullPointerException("id");
+        }
+    }
+
+    private void checkShelf(Shelf shelf) {
+        if (shelf.getId() == null) {
+            throw new NullPointerException("id");
+        }
+    }
+
+    private void checkShelfCSW(Shelf shelf, Item item) throws MethodFailureException, ShelfWeightException, ShelfCapacityException, ShelfSecurityException {
+        int weight = 0;
+        List<Item> list = listAllItemsOnShelf(shelf);
+        for (Item i : list) {
+            weight += i.getWeight();
+        }
+
+        if (shelf.getMaxWeight() < weight + item.getWeight()) {
+            throw new ShelfWeightException("ShelfWeightException");
+        }
+        if (shelf.getCapacity() < list.size() + 1) {
+            throw new ShelfCapacityException("ShelfCapacityException");
+        }
+        if (shelf.isSecure() != item.isDangerous()) {
+            throw new ShelfSecurityException("ShelfSecurityException");
+        }
     }
 }

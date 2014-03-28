@@ -34,7 +34,7 @@ public interface WarehouseManager {
      * @param shelf specified shelf.
      * @param item specified item.
      */
-    void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException ;
+    void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException;
 
     /**
      * Method withdraw item from a shelf.
