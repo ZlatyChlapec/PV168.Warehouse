@@ -3,6 +3,7 @@ package cz.muni.fi.pv168.warehouse.managers;
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import cz.muni.fi.pv168.warehouse.exceptions.ShelfAttributeException;
 
 import java.util.Date;
 import java.util.List;
@@ -27,25 +28,39 @@ public interface WarehouseManager {
      * @param shelf specified shelf.
      * @return list of required items.
      */
-    List<Item> listAllItemsOnShelf(Shelf shelf) throws MethodFailureException ;
+    List<Item> listAllItemsOnShelf(Shelf shelf) throws MethodFailureException;
 
     /**
      * Method puts item on a shelf.
      * @param shelf specified shelf.
      * @param item specified item.
      */
-    void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException;
+    void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException, ShelfAttributeException;
 
     /**
      * Method withdraw item from a shelf.
      // * @param shelf specified shelf.
      * @param item specified item.
      */
-    Item withdrawItemFromShelf(Shelf shelf, Item item) throws MethodFailureException ;
+    Item withdrawItemFromShelf(Shelf shelf, Item item) throws MethodFailureException;
 
     /**
      * Method will remove all expired items from database.
      * @return list of removed items.
      */
-    List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException ;
+    List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException;
+
+    /**
+     *
+     * @return list
+     * @throws MethodFailureException chyba
+     */
+    List<Shelf> listShelvesWithSomeFreeSpace() throws MethodFailureException;
+
+    /**
+     *
+     * @return list
+     * @throws MethodFailureException chyba
+     */
+    List<Item> listAllItemsWithoutShelf() throws MethodFailureException;
 }
