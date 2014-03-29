@@ -89,8 +89,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
         checkShelf(shelf);
 
         try (Connection con = dataSource.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.ITEM.id,weight,insertionDate," +
-                    "storeDays,dangerous FROM ADMIN.ITEM JOIN ADMIN.SHELF ON ADMIN.SHELF.id = ADMIN.ITEM.shelfid " +
+            try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.ITEM.id, weight, insertionDate, " +
+                    "storeDays, dangerous FROM ADMIN.ITEM JOIN ADMIN.SHELF ON ADMIN.SHELF.id = ADMIN.ITEM.shelfid " +
                     "WHERE ADMIN.SHELF.id = ?")) {
                 query.setInt(1, shelf.getId());
 
@@ -116,7 +116,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);
-            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = ? WHERE id = ?")) {
+            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = ? WHERE id = ? AND " +
+                    "SHELFID IS NULL")) {
                 query.setInt(1, shelf.getId());
                 query.setInt(2, item.getId());
 
@@ -145,7 +146,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);
-            try (PreparedStatement query = con.prepareStatement("DELETE FROM ADMIN.ITEM WHERE id = ?")) {
+            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = NULL WHERE id = ?")) {
                 query.setInt(1, item.getId());
 
                 if (query.executeUpdate() != 1) {
@@ -170,7 +171,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
         checkDataSource();
 
         try (Connection con = dataSource.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("SELECT * FROM ADMIN.ITEM")) {
+            try (PreparedStatement query = con.prepareStatement("SELECT id, weight, insertiondate, storedays, " +
+                    "dangerous FROM ADMIN.ITEM")) {
                 try (ResultSet rs = query.executeQuery()) {
                     List<Item> list = new ArrayList<>();
                     while (rs.next()) {
@@ -194,12 +196,45 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
     @Override
     public List<Shelf> listShelvesWithSomeFreeSpace() throws MethodFailureException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        checkDataSource();
+
+        try (Connection con = dataSource.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.SHELF.id, col, row, maxWeight, " +
+                    "capacity, secure FROM ADMIN.SHELF LEFT JOIN ADMIN.ITEM ON ADMIN.SHELF.id = ADMIN.ITEM.shelfid " +
+                    "GROUP BY ADMIN.SHELF.id HAVING COUNT (ADMIN.ITEM.id) < capacity")) {
+                try (ResultSet rs = query.executeQuery()) {
+                    List<Shelf> list = new ArrayList<>();
+                    while (rs.next()) {
+                        list.add(fillShelf(rs));
+                    }
+                    return list;
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
+        }
     }
 
     @Override
     public List<Item> listAllItemsWithoutShelf() throws MethodFailureException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        checkDataSource();
+
+        try (Connection con = dataSource.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("SELECT id, weight, insertiondate, storedays, " +
+                    "dangerous FROM ADMIN.ITEM WHERE shelfid IS NULL")) {
+                try (ResultSet rs = query.executeQuery()) {
+                    List<Item> list = new ArrayList<>();
+                    while (rs.next()) {
+                        list.add(fillItem(rs));
+                    }
+                    return list;
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
+        }
     }
 
     private Shelf fillShelf(ResultSet rs) throws SQLException{

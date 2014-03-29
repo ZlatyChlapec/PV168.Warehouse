@@ -172,6 +172,41 @@ public class WarehouseManagerImplTest {
     }
 
     @Test
+    public void listShelvesWithSomeFreeSpace() throws MethodFailureException, ShelfAttributeException {
+        warehouseManager.putItemOnShelf(shelf3, item1);
+        warehouseManager.putItemOnShelf(shelf1, item3);
+        warehouseManager.putItemOnShelf(shelf2, item2);
+
+        List<Shelf> expected = Arrays.asList(shelf1, shelf2, shelf3);
+        List<Shelf> actual = warehouseManager.listShelvesWithSomeFreeSpace();
+        Collections.sort(expected, shelfIdComparator);
+        Collections.sort(actual, shelfIdComparator);
+
+        assertEquals(expected, actual);
+        for (int i = 0; i < expected.size(); i++) {
+            assertDeepEquals(expected.get(i), actual.get(i));
+        }
+    }
+
+    @Test
+    public void listAllItemsWithoutShelf() throws MethodFailureException, ShelfAttributeException {
+        warehouseManager.putItemOnShelf(shelf3, item1);
+        warehouseManager.putItemOnShelf(shelf1, item3);
+        warehouseManager.putItemOnShelf(shelf2, item2);
+
+        List<Item> expected = Arrays.asList(itemManager.findItemById(expiredItem.getId()),
+                itemManager.findItemById(notExpiredItem.getId()));
+        List<Item> actual = warehouseManager.listAllItemsWithoutShelf();
+        Collections.sort(expected, itemIdComparator);
+        Collections.sort(actual, itemIdComparator);
+
+        assertEquals(expected, actual);
+        for (int i = 0; i < expected.size(); i++) {
+            assertDeepEquals(expected.get(i), actual.get(i));
+        }
+    }
+
+    @Test
     public void testRemoveAllExpiredItems() throws MethodFailureException, ShelfAttributeException {
         warehouseManager.putItemOnShelf(shelf1, expiredItem);
         warehouseManager.putItemOnShelf(shelf1, notExpiredItem);
@@ -222,6 +257,13 @@ public class WarehouseManagerImplTest {
             assertEquals(((Shelf) expected).isSecure(), ((Shelf) actual).isSecure());
         }
     }
+
+    private static Comparator<Shelf> shelfIdComparator = new Comparator<Shelf>() {
+        @Override
+        public int compare(Shelf o1, Shelf o2) {
+            return o1.getId().compareTo(o2.getId());
+        }
+    };
 
     private static Comparator<Item> itemIdComparator = new Comparator<Item>() {
         @Override
