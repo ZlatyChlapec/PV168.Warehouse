@@ -33,13 +33,12 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public Shelf createShelf(Shelf shelf) throws MethodFailureException {
-
         checkDataSource();
         checkAllExceptId(shelf);
 
         try (Connection con = dataSource.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("INSERT INTO ADMIN.SHELF(col, row, maxWeight, capacity," +
-                    "secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement query = con.prepareStatement("INSERT INTO ADMIN.SHELF(col, row, maxWeight, " +
+                    "capacity, secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
 
                 con.setAutoCommit(false);
                 if (shelf.getId() != null) {
@@ -82,7 +81,6 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public Shelf deleteShelf(Shelf shelf) throws MethodFailureException {
-
         checkDataSource();
         if (shelf.getId() == null || shelf == null) {
             throw new NullPointerException("Id or shelf was null.");
@@ -117,30 +115,17 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public List<Shelf> listAllShelves() throws MethodFailureException {
-
         checkDataSource();
         List<Shelf> list = new ArrayList<>();
-
         try (Connection con = dataSource.getConnection()) {
-            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure FROM ADMIN.SHELF")) {
-                con.setAutoCommit(false);
+            try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
+                    "FROM ADMIN.SHELF")) {
                 try (ResultSet rs = query.executeQuery()) {
                     while (rs.next()) {
                         list.add(fillShelf(rs));
                     }
-                    con.commit();
-                    con.setAutoCommit(true);
                     return list;
                 }
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while selecting from DB.", e1);
-                    throw new MethodFailureException("Crash while selecting from DB.", e1);
-                }
-                logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
-                throw new MethodFailureException("Crash while selecting from DB.", e);
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
@@ -150,35 +135,20 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public Shelf findShelfById(int id) throws MethodFailureException {
-
         checkDataSource();
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
                     "FROM ADMIN.SHELF WHERE id = ?")) {
                 query.setInt(1, id);
-                con.setAutoCommit(false);
                 ResultSet rs = query.executeQuery();
-
                 if (rs.next()) {
                     Shelf shelf = fillShelf(rs);
                     if (rs.next()) {
                         throw new SQLException("Withdraw more than was supposed to.");
                     }
-                    con.commit();
-                    con.setAutoCommit(true);
                     return shelf;
                 } else
                     throw new SQLException("Nothing withdrew.");
-
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while selecting from DB.", e1);
-                    throw new MethodFailureException("Crash while selecting from DB.", e1);
-                }
-                logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
-                throw new MethodFailureException("Crash while selecting from DB.", e);
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
@@ -188,7 +158,6 @@ public class ShelfManagerImpl implements ShelfManager {
 
     @Override
     public void updateShelf(Shelf shelf) throws MethodFailureException {
-
         checkDataSource();
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.SHELF SET col = ?,row = ?," +
