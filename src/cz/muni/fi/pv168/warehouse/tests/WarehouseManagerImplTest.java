@@ -40,7 +40,7 @@ public class WarehouseManagerImplTest {
     }
 
     private Item expiredItem, notExpiredItem, item1, item2, item3;
-    private Shelf shelf1, shelf2, shelf3;
+    private Shelf shelf1, shelf2, shelf3, shelf4;
 
     private void preparedEntities() throws MethodFailureException {
         expiredItem = new Item();
@@ -68,10 +68,12 @@ public class WarehouseManagerImplTest {
         shelf1 = newShelf(0, 0, 200.00D, 4, true);
         shelf2 = newShelf(0, 0, 200.00D, 4, false);
         shelf3 = newShelf(0, 0, 200.00D, 1, false);
+        shelf4 = newShelf(0, 0, 100.00D, 4, false);
 
         shelfManager.createShelf(shelf1);
         shelfManager.createShelf(shelf2);
         shelfManager.createShelf(shelf3);
+        shelfManager.createShelf(shelf4);
     }
 
     @Before
@@ -126,8 +128,8 @@ public class WarehouseManagerImplTest {
 
     @Test
     public void testPutItemOnShelf() throws MethodFailureException, ShelfAttributeException {
-        warehouseManager.putItemOnShelf(shelf1, item1);
-        Item actual = warehouseManager.withdrawItemFromShelf(shelf1, item1);
+        warehouseManager.putItemOnShelf(shelf2, item1);
+        Item actual = warehouseManager.withdrawItemFromShelf(item1);
 
         assertEquals(item1, actual);
         assertDeepEquals(item1, actual);
@@ -146,8 +148,8 @@ public class WarehouseManagerImplTest {
 
     @Test(expected = ShelfAttributeException.class)
     public void testPutItemOnShelfWrongWeight() throws MethodFailureException, ShelfAttributeException {
-        warehouseManager.putItemOnShelf(shelf2, item1);
-        warehouseManager.putItemOnShelf(shelf2, item2);
+        warehouseManager.putItemOnShelf(shelf4, item1);
+        warehouseManager.putItemOnShelf(shelf4, item2);
     }
 
     @Test(expected = NullPointerException.class)
@@ -163,7 +165,7 @@ public class WarehouseManagerImplTest {
     @Test
     public void testWithdrawItemFromShelf() throws MethodFailureException, ShelfAttributeException {
         warehouseManager.putItemOnShelf(shelf2, item1);
-        Item actual = warehouseManager.withdrawItemFromShelf(shelf2, item1);
+        Item actual = warehouseManager.withdrawItemFromShelf(item1);
 
         assertEquals(item1, actual);
         assertDeepEquals(item1, actual);

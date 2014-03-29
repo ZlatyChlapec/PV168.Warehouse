@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -138,13 +139,57 @@ public class WarehouseManagerImpl implements WarehouseManager {
     }
 
     @Override
-    public Item withdrawItemFromShelf(Shelf shelf, Item item) throws MethodFailureException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Item withdrawItemFromShelf(Item item) throws MethodFailureException {
+        checkDataSource();
+        checkItem(item);
+
+        try (Connection con = dataSource.getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement query = con.prepareStatement("DELETE FROM ADMIN.ITEM WHERE id = ?")) {
+                query.setInt(1, item.getId());
+
+                if (query.executeUpdate() != 1) {
+                    throw new SQLException("Something went wrong while putting on shelf.");
+                }
+                return item;
+            } catch (SQLException e) {
+                con.rollback();
+                logger.log(Level.SEVERE, "Crash while updating DB.", e);
+                throw new MethodFailureException("Crash while updating DB.", e);
+            } finally {
+                con.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
+        }
     }
 
     @Override
     public List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        checkDataSource();
+
+        try (Connection con = dataSource.getConnection()) {
+            try (PreparedStatement query = con.prepareStatement("SELECT * FROM ADMIN.ITEM")) {
+                try (ResultSet rs = query.executeQuery()) {
+                    List<Item> list = new ArrayList<>();
+                    while (rs.next()) {
+                        Item temp = fillItem(rs);
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(temp.getInsertionDate());
+                        cal.add(Calendar.DATE, temp.getStoreDays());
+                        if (cal.getTime().compareTo(currentDate) > 0) {
+                            list.add(temp);
+                            withdrawItemFromShelf(temp);
+                        }
+                    }
+                    return list;
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", e);
+            throw new MethodFailureException("Crash while updating DB.", e);
+        }
     }
 
     @Override
@@ -191,20 +236,20 @@ public class WarehouseManagerImpl implements WarehouseManager {
     }
 
     private void checkShelfAttribute(Shelf shelf, Item item) throws MethodFailureException, ShelfAttributeException {
-        int weight = 0;
+        double weight = 0;
         List<Item> list = listAllItemsOnShelf(shelf);
         for (Item i : list) {
             weight += i.getWeight();
         }
 
         if (shelf.getMaxWeight() < weight + item.getWeight()) {
-            throw new ShelfAttributeException("ShelfWeightException");
+            throw new ShelfAttributeException("weight");
         }
         if (shelf.getCapacity() < list.size() + 1) {
-            throw new ShelfAttributeException("ShelfCapacityException");
+            throw new ShelfAttributeException("capacity");
         }
         if (shelf.isSecure() != item.isDangerous()) {
-            throw new ShelfAttributeException("ShelfSecurityException");
+            throw new ShelfAttributeException("security");
         }
     }
 }

@@ -42,7 +42,7 @@ public interface WarehouseManager {
      // * @param shelf specified shelf.
      * @param item specified item.
      */
-    Item withdrawItemFromShelf(Shelf shelf, Item item) throws MethodFailureException;
+    Item withdrawItemFromShelf(Item item) throws MethodFailureException;
 
     /**
      * Method will remove all expired items from database.
