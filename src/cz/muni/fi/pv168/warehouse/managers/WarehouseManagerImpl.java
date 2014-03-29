@@ -201,7 +201,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.SHELF.id, col, row, maxWeight, " +
                     "capacity, secure FROM ADMIN.SHELF LEFT JOIN ADMIN.ITEM ON ADMIN.SHELF.id = ADMIN.ITEM.shelfid " +
-                    "GROUP BY ADMIN.SHELF.id HAVING COUNT (ADMIN.ITEM.id) < capacity")) {
+                    "GROUP BY ADMIN.SHELF.id, col, row, maxWeight, capacity, secure HAVING COUNT (ADMIN.ITEM.id) < capacity")) {
                 try (ResultSet rs = query.executeQuery()) {
                     List<Shelf> list = new ArrayList<>();
                     while (rs.next()) {
