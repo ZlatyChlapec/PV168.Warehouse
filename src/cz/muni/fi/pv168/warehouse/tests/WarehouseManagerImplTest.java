@@ -177,7 +177,7 @@ public class WarehouseManagerImplTest {
         warehouseManager.putItemOnShelf(shelf1, item3);
         warehouseManager.putItemOnShelf(shelf2, item2);
 
-        List<Shelf> expected = Arrays.asList(shelf1, shelf2, shelf3);
+        List<Shelf> expected = Arrays.asList(shelf1, shelf2, shelf4);
         List<Shelf> actual = warehouseManager.listShelvesWithSomeFreeSpace();
         Collections.sort(expected, shelfIdComparator);
         Collections.sort(actual, shelfIdComparator);

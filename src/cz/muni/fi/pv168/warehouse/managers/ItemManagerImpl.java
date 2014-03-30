@@ -12,9 +12,8 @@ import java.util.logging.Logger;
 
 /**
  * Class will serve to manage items.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-29
  */
 public class ItemManagerImpl implements ItemManager {
 
@@ -104,7 +103,7 @@ public class ItemManagerImpl implements ItemManager {
 
                 int deletedRows = query.executeUpdate();
                 if (deletedRows != 1) {
-                    throw new MethodFailureException("Error 'deleteItem': More than 1 row deleted");
+                    throw new MethodFailureException("Error: More than 1 row deleted");
                 }
 
                 connection.commit();
@@ -149,9 +148,6 @@ public class ItemManagerImpl implements ItemManager {
                 }
 
                 return result;
-            } catch (SQLException ex) {
-                logger.log(Level.SEVERE, "Error listing all items", ex);
-                throw new MethodFailureException("Error listing all items", ex);
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Error listing all items", ex);
@@ -176,10 +172,6 @@ public class ItemManagerImpl implements ItemManager {
                 } else {
                     return null;
                 }
-
-            } catch (SQLException ex) {
-                logger.log(Level.SEVERE, "Error finding item", ex);
-                throw new MethodFailureException("Error finding item", ex);
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Error finding item", ex);
@@ -192,10 +184,10 @@ public class ItemManagerImpl implements ItemManager {
         checkDataSource();
         itemCheck(item);
         if (item.getId() == null) {
-            throw new NullPointerException("Error updateItem: item id is null");
+            throw new NullPointerException("Error: item id is null");
         }
         if (item.getId() <= 0) {
-            throw new IllegalArgumentException("Error updateItem: item id is null");
+            throw new IllegalArgumentException("Error: item id is not below/equal zero");
         }
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement query = connection.prepareStatement("UPDATE ADMIN.ITEM SET WEIGHT =?, STOREDAYS =?, DANGEROUS=? WHERE ID =?")) {
@@ -206,7 +198,7 @@ public class ItemManagerImpl implements ItemManager {
 
                 int updatedRows = query.executeUpdate();
                 if (updatedRows != 1) {
-                    throw new MethodFailureException("Error: More than 1 items with that id");
+                    throw new MethodFailureException("Error: More than 1 item with that id");
                 }
 
                 connection.commit();
@@ -221,12 +213,12 @@ public class ItemManagerImpl implements ItemManager {
                     logger.log(Level.SEVERE, "Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
-                    if (connection != null) {
-                        try {
+                    try {
+                        if (connection != null) {
                             connection.setAutoCommit(true);
-                        } catch (SQLException ex2) {
-                            logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
                         }
+                    } catch (SQLException ex2) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
                     }
                 }
                 logger.log(Level.SEVERE, "Error updating item", ex);
@@ -257,9 +249,6 @@ public class ItemManagerImpl implements ItemManager {
                 } else {
                     return null;
                 }
-            } catch (SQLException ex) {
-                logger.log(Level.SEVERE, "Error retrieving expiration", ex);
-                throw new MethodFailureException("Error retrieving expiration", ex);
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Error retrieving expiration", ex);
@@ -269,7 +258,7 @@ public class ItemManagerImpl implements ItemManager {
 
     /**
      * Method checks if item is not null; weight and store days are bigger than zero.
-     * @param item item we want to check.
+     * @param item item we want to have checked.
      */
     private void itemCheck(Item item) {
         if (item == null) {

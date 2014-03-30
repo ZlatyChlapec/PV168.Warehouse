@@ -8,22 +8,19 @@ import java.util.List;
 
 /**
  * Class containing methods for managing items.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-16
  */
 public interface ItemManager {
 
     /**
      * Method will create item.
-     *
      * @param item item we want to create.
      */
     void createItem(Item item) throws MethodFailureException;
 
     /**
      * Method will delete item.
-     *
      * @param item item we want to delete.
      * @return deleted item.
      */
@@ -31,14 +28,12 @@ public interface ItemManager {
 
     /**
      * Method return list of all items.
-     *
      * @return list of all items.
      */
     List<Item> listAllItems() throws MethodFailureException;
 
     /**
      * Method will find item by id.
-     *
      * @param id id of item we want to find.
      * @return item with id we wanted.
      */
@@ -46,7 +41,6 @@ public interface ItemManager {
 
     /**
      * Method will update item.
-     *
      * @param item item we want to update.
      * @return updated item.
      */
@@ -54,7 +48,6 @@ public interface ItemManager {
 
     /**
      * Method calculate expiration date for given item.
-     *
      * @param item item we want to get expiration date.
      * @return Date of give item.
      */

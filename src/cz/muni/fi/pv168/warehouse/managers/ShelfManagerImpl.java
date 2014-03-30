@@ -12,9 +12,8 @@ import java.util.logging.Logger;
 
 /**
  * Class will serve to manage items.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public class ShelfManagerImpl implements ShelfManager {
 
@@ -35,16 +34,14 @@ public class ShelfManagerImpl implements ShelfManager {
     public Shelf createShelf(Shelf shelf) throws MethodFailureException {
         checkDataSource();
         checkAllExceptId(shelf);
+        if (shelf.getId() != null) {
+            throw new IllegalArgumentException("Error: shelf id is already set");
+        }
 
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("INSERT INTO ADMIN.SHELF(col, row, maxWeight, " +
                     "capacity, secure) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
-
                 con.setAutoCommit(false);
-                if (shelf.getId() != null) {
-                    throw new IllegalArgumentException("Id can't be set before.");
-                }
-
                 query.setInt(1, shelf.getColumn());
                 query.setInt(2, shelf.getRow());
                 query.setDouble(3, shelf.getMaxWeight());
@@ -57,33 +54,45 @@ public class ShelfManagerImpl implements ShelfManager {
                             shelf.setId(rs.getInt(1));
                         }
                         con.commit();
-                        con.setAutoCommit(true);
                         return shelf;
                     }
                 } else {
-                    throw new SQLException("Too many inserts.");
+                    throw new SQLException("Error: More than 1 row added");
                 }
-            } catch (SQLException e) {
+            } catch (SQLException ex) {
                 try {
-                    con.rollback();
-                } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while inserting into DB.", e1);
-                    throw new MethodFailureException("Crash while inserting into DB.", e1);
+                    if(con != null) {
+                        con.rollback();
+                    }
+                } catch (SQLException ex1) {
+                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    throw new MethodFailureException("Error rollback database", ex1);
+                } finally {
+                    try {
+                        if (con != null) {
+                            con.setAutoCommit(true);
+                        }
+                    } catch (SQLException ex2) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                    }
                 }
-                logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-                throw new MethodFailureException("Crash while inserting into DB.", e);
+                logger.log(Level.SEVERE, "Error creating shelf", ex);
+                throw new MethodFailureException("Error creating shelf", ex);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while inserting into DB.", e);
-            throw new MethodFailureException("Crash while inserting into DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error creating shelf", ex);
+            throw new MethodFailureException("Error creating shelf", ex);
         }
     }
 
     @Override
     public Shelf deleteShelf(Shelf shelf) throws MethodFailureException {
         checkDataSource();
-        if (shelf.getId() == null || shelf == null) {
-            throw new NullPointerException("Id or shelf was null.");
+        if (shelf == null) {
+            throw new NullPointerException("Error: shelf = null");
+        }
+        if (shelf.getId() == null) {
+            throw new NullPointerException("Error: shelf id is no set");
         }
 
         try (Connection con = dataSource.getConnection()) {
@@ -92,24 +101,34 @@ public class ShelfManagerImpl implements ShelfManager {
                 con.setAutoCommit(false);
                 int counter = query.executeUpdate();
                 if (counter != 1) {
-                    throw new SQLException("I think you deleted more then one record.");
+                    throw new SQLException("Error: More than 1 row deleted");
                 }
+
                 con.commit();
-                con.setAutoCommit(true);
                 return shelf;
-            } catch (SQLException e) {
+            } catch (SQLException ex) {
                 try {
-                    con.rollback();
-                } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while deleting from DB.", e1);
-                    throw new MethodFailureException("Crash while deleting from DB.", e1);
+                    if (con != null) {
+                        con.rollback();
+                    }
+                } catch (SQLException ex1) {
+                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    throw new MethodFailureException("Error rollback database", ex1);
+                } finally {
+                    try {
+                        if (con != null) {
+                            con.setAutoCommit(true);
+                        }
+                    } catch (SQLException ex2) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                    }
                 }
-                logger.log(Level.SEVERE, "Crash while deleting from DB.", e);
-                throw new MethodFailureException("Crash while deleting from DB.", e);
+                logger.log(Level.SEVERE, "Error deleting shelf", ex);
+                throw new MethodFailureException("Error deleting shelf", ex);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while deleting from DB.", e);
-            throw new MethodFailureException("Crash while deleting from DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error deleting shelf", ex);
+            throw new MethodFailureException("Error deleting shelf", ex);
         }
     }
 
@@ -127,9 +146,9 @@ public class ShelfManagerImpl implements ShelfManager {
                     return list;
                 }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
-            throw new MethodFailureException("Crash while selecting from DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error listing all shelves", ex);
+            throw new MethodFailureException("Error listing all shelves", ex);
         }
     }
 
@@ -144,15 +163,15 @@ public class ShelfManagerImpl implements ShelfManager {
                 if (rs.next()) {
                     Shelf shelf = fillShelf(rs);
                     if (rs.next()) {
-                        throw new SQLException("Withdraw more than was supposed to.");
+                        throw new SQLException("Error: More rows with same id found");
                     }
                     return shelf;
                 } else
-                    throw new SQLException("Nothing withdrew.");
+                    throw new SQLException("Error: No such shelf found");
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while selecting from DB.", e);
-            throw new MethodFailureException("Crash while selecting from DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error finding shelf", ex);
+            throw new MethodFailureException("Error finding shelf", ex);
         }
     }
 
@@ -166,10 +185,10 @@ public class ShelfManagerImpl implements ShelfManager {
                 con.setAutoCommit(false);
                 checkAllExceptId(shelf);
                 if (shelf.getId() == null) {
-                    throw new NullPointerException("id");
+                    throw new NullPointerException("Error: shelf id is null");
                 }
-                if (shelf.getId() < 0) {
-                    throw new IllegalArgumentException("id smaller then zero");
+                if (shelf.getId() <= 0) {
+                    throw new IllegalArgumentException("Error: shelf id is not below/equal zero");
                 }
 
                 query.setInt(1, shelf.getColumn());
@@ -181,26 +200,42 @@ public class ShelfManagerImpl implements ShelfManager {
 
                 int counter = query.executeUpdate();
                 if (counter != 1) {
-                    throw new SQLException("Tried to update more than one row.");
+                    throw new SQLException("Error: More than 1 shelf with that id");
                 }
                 con.commit();
-                con.setAutoCommit(true);
-            } catch (SQLException e) {
+
+            } catch (SQLException ex) {
                 try {
-                    con.rollback();
-                } catch (SQLException e1) {
-                    logger.log(Level.SEVERE, "Crash while updating DB.", e1);
-                    throw new MethodFailureException("Crash while updating DB.", e1);
+                    if (con != null) {
+                        con.rollback();
+                    }
+                } catch (SQLException ex1) {
+                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    throw new MethodFailureException("Error rollback database", ex1);
+                } finally {
+                    try {
+                        if (con != null) {
+                            con.setAutoCommit(true);
+                        }
+                    } catch (SQLException ex2) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                    }
                 }
-                logger.log(Level.SEVERE, "Crash while updating DB.", e);
-                throw new MethodFailureException("Crash while updating DB.", e);
+                logger.log(Level.SEVERE, "Error updating shelf", ex);
+                throw new MethodFailureException("Error updating shelf", ex);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error updating shelf", ex);
+            throw new MethodFailureException("Error updating shelf", ex);
         }
     }
 
+    /**
+     * Method creates shelf from table result set.
+     * @param rs table result set.
+     * @return newly created shelf.
+     * @throws SQLException when some attribute is null.
+     */
     private Shelf fillShelf(ResultSet rs) throws SQLException{
         Shelf shelf = new Shelf();
         shelf.setId(rs.getInt("id"));
@@ -212,6 +247,10 @@ public class ShelfManagerImpl implements ShelfManager {
         return shelf;
     }
 
+    /**
+     * Method checks if item is not null; weight and store days are bigger than zero.
+     * @param shelf shelf we want to have checked.
+     */
     private void checkAllExceptId(Shelf shelf) {
         if (shelf == null) {
             throw new NullPointerException("shelf");

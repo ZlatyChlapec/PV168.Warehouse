@@ -4,9 +4,8 @@ import java.util.Date;
 
 /**
  * This class represent item.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public class Item {
     private Integer id;

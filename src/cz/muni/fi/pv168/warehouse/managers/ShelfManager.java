@@ -7,9 +7,8 @@ import java.util.List;
 
 /**
  * Class containing methods for managing shelves.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-16
  */
 public interface ShelfManager {
     /**

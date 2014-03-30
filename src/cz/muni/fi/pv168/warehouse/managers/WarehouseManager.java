@@ -10,16 +10,16 @@ import java.util.List;
 
 /**
  * Class containing methods for managing warehouse.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public interface WarehouseManager {
 
     /**
     * Method will find shelf with specified item.
     * @param item specified item.
-    * @return required shelf
+    * @return required shelf.
+    * @throws MethodFailureException when database operation fails.
     */
     Shelf findShelfWithItem(Item item) throws MethodFailureException;
 
@@ -27,6 +27,7 @@ public interface WarehouseManager {
      * Method will list all items on specified shelf.
      * @param shelf specified shelf.
      * @return list of required items.
+     * @throws MethodFailureException when database operation fails.
      */
     List<Item> listAllItemsOnShelf(Shelf shelf) throws MethodFailureException;
 
@@ -34,33 +35,36 @@ public interface WarehouseManager {
      * Method puts item on a shelf.
      * @param shelf specified shelf.
      * @param item specified item.
+     * @throws MethodFailureException when database operation fails.
+     * @throws ShelfAttributeException when input shelf have wrong attributes.
      */
     void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException, ShelfAttributeException;
 
     /**
      * Method withdraw item from a shelf.
-     // * @param shelf specified shelf.
      * @param item specified item.
+     * @throws MethodFailureException when database operation fails.
      */
     Item withdrawItemFromShelf(Item item) throws MethodFailureException;
 
     /**
      * Method will remove all expired items from database.
      * @return list of removed items.
+     * @throws MethodFailureException when database operation fails.
      */
     List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException;
 
     /**
-     *
-     * @return list
-     * @throws MethodFailureException chyba
+     * Method will return list of shelves with free space.
+     * @return list of shelves with free space.
+     * @throws MethodFailureException when database operation fails.
      */
     List<Shelf> listShelvesWithSomeFreeSpace() throws MethodFailureException;
 
     /**
-     *
-     * @return list
-     * @throws MethodFailureException chyba
+     * Method will return all items which are not stored on a shelf.
+     * @return list of items without shelf.
+     * @throws MethodFailureException when database operation fails.
      */
     List<Item> listAllItemsWithoutShelf() throws MethodFailureException;
 }

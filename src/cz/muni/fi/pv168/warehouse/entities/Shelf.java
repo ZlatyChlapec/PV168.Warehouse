@@ -2,9 +2,8 @@ package cz.muni.fi.pv168.warehouse.entities;
 
 /**
  * This class represent shelf.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public class Shelf {
 

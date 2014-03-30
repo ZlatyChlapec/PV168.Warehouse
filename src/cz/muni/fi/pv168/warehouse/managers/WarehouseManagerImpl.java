@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * Class will serve to manage warehouse.
  *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public class WarehouseManagerImpl implements WarehouseManager {
 
@@ -37,6 +37,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
             throw new IllegalStateException("Error: Data source is not set");
         }
     }
+
+    //TODO co ked item nema shelf ??? Preco exceptiony ? nemala by byt aj moznost s NULL?
 
     @Override
     public Shelf findShelfWithItem(Item item) throws MethodFailureException {
@@ -54,7 +56,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     if (rs.next()) {
                         shelfid = rs.getInt("shelfid");
                         if (rs.next()) {
-                            throw new SQLException("Too many things in rs.");
+                            throw new SQLException("Error: More rows with same id found");
                         }
                     } else {
                         throw new SQLException("Something went wrong while withdrawing from db.");
@@ -67,7 +69,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                             if (rs1.next()) {
                                 shelf = fillShelf(rs1);
                                 if (rs1.next()) {
-                                    throw new SQLException("Too many things in rs.");
+                                    throw new SQLException("Error: More rows with same id found");
                                 }
                                 return shelf;
                             } else {
@@ -77,9 +79,9 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     }
                 }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while searching for item.", e);
-            throw new MethodFailureException("Crash while searching for item.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error finding item", ex);
+            throw new MethodFailureException("Error finding item", ex);
         }
     }
 
@@ -102,9 +104,9 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     return list;
                 }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while reading DB.", e);
-            throw new MethodFailureException("Crash while reading DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error listing all items on shelf", ex);
+            throw new MethodFailureException("Error listing all items on shelf", ex);
         }
     }
 
@@ -124,18 +126,29 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 checkShelfAttribute(shelf, item);
 
                 if (query.executeUpdate() != 1) {
-                    throw new SQLException("Something went wrong while putting on shelf.");
+                    throw new SQLException("Error: More than 1 item with that id");
                 }
-            } catch (SQLException e) {
-                con.rollback();
-                logger.log(Level.SEVERE, "Crash while updating DB.", e);
-                throw new MethodFailureException("Crash while updating DB.", e);
-            } finally {
-                con.setAutoCommit(true);
+            } catch (SQLException ex) {
+                try {
+                    if (con != null) {
+                        con.rollback();
+                    }
+                } catch (SQLException ex1) {
+                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    throw new MethodFailureException("Error rollback database", ex1);
+                } finally {
+                    try {
+                        if (con != null) {
+                            con.setAutoCommit(true);
+                        }
+                    } catch (SQLException ex1) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex1);
+                    }
+                }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error putting item on shelf", ex);
+            throw new MethodFailureException("Error putting item on shelf", ex);
         }
     }
 

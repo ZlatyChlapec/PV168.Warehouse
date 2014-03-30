@@ -13,8 +13,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * @author Slapy
- * @version 26.3.2014
+ * This class contains methods for parsing SQL scripts.
+ * @author Oliver Mrázik & Martin Zaťko
+ * @version 2014-03-29
  */
 public class Tools {
 
