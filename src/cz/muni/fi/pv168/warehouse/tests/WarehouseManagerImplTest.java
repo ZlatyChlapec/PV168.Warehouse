@@ -21,9 +21,8 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Tests class to Warehouse Manager.
- *
  * @author Oliver Mrázik & Martin Zaťko
- * @version 0.1
+ * @version 2014-03-30
  */
 public class WarehouseManagerImplTest {
 
@@ -219,6 +218,15 @@ public class WarehouseManagerImplTest {
         }
     }
 
+    /**
+     * Method creates new Shelf with given parameters.
+     * @param column shelf column.
+     * @param row shelf row.
+     * @param maxWeight shelf maxWeight.
+     * @param capacity shelf capacity.
+     * @param secure shelf security.
+     * @return new Shelf.
+     */
     private static Shelf newShelf(int column, int row, double maxWeight, int capacity, boolean secure) {
         Shelf shelf = new Shelf();
         shelf.setColumn(column);
@@ -230,6 +238,13 @@ public class WarehouseManagerImplTest {
         return shelf;
     }
 
+    /**
+     * Method creates new Item with given parameters.
+     * @param weight items weight.
+     * @param storeDays items storeDays.
+     * @param dangerous items dangerous.
+     * @return new Item.
+     */
     private static Item newItem(Double weight, int storeDays, boolean dangerous) {
         Item item = new Item();
         item.setWeight(weight);
@@ -240,6 +255,11 @@ public class WarehouseManagerImplTest {
         return item;
     }
 
+    /**
+     * Method tests attributes of expected and actual object. Valid objects are Item and Shelf. Should be equals.
+     * @param expected expected object.
+     * @param actual expected object.
+     */
     public void assertDeepEquals(Object expected, Object actual) {
         if(expected instanceof Item && actual instanceof Item) {
             assertEquals(((Item) expected).getId(), ((Item) actual).getId());
@@ -257,7 +277,9 @@ public class WarehouseManagerImplTest {
             assertEquals(((Shelf) expected).isSecure(), ((Shelf) actual).isSecure());
         }
     }
-
+    /**
+     * Comparator of shelves on item id.
+     */
     private static Comparator<Shelf> shelfIdComparator = new Comparator<Shelf>() {
         @Override
         public int compare(Shelf o1, Shelf o2) {
@@ -265,6 +287,9 @@ public class WarehouseManagerImplTest {
         }
     };
 
+    /**
+     * Comparator of items on item id.
+     */
     private static Comparator<Item> itemIdComparator = new Comparator<Item>() {
         @Override
         public int compare(Item o1, Item o2) {

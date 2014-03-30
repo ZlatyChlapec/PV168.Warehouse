@@ -20,8 +20,9 @@ import static org.junit.Assert.*;
 
 
 /**
+ * Tests class to Shelf Manager.
  * @author Oliver Mrázik & Martin Zaťko
- * @version 2014-03-15
+ * @version 2014-3-23
  */
 public class ShelfManagerImplTest {
 
@@ -316,6 +317,15 @@ public class ShelfManagerImplTest {
         manager.updateShelf(shelf);
     }
 
+    /**
+     * Method creates new Shelf with given parameters.
+     * @param column shelf column.
+     * @param row shelf row.
+     * @param maxWeight shelf maxWeight.
+     * @param capacity shelf capacity.
+     * @param secure shelf security.
+     * @return new Shelf.
+     */
     private Shelf newShelf(int column, int row, double maxWeight, int capacity, boolean secure) {
         Shelf shelf = new Shelf();
         shelf.setColumn(column);
@@ -325,7 +335,11 @@ public class ShelfManagerImplTest {
         shelf.setSecure(secure);
         return shelf;
     }
-
+    /**
+     * Method tests attributes of expected and actual shelves. Should be equals.
+     * @param expectedList expected list of shelves.
+     * @param actualList actual list of shelves.
+     */
     private void assertDeepEquals(List<Shelf> expectedList, List<Shelf> actualList) {
         for (int i = 0; i < expectedList.size(); i++) {
             Shelf expected = expectedList.get(i);
@@ -334,6 +348,11 @@ public class ShelfManagerImplTest {
         }
     }
 
+    /**
+     * Method tests attributes of expected and actual shelf. Should be equals.
+     * @param expected expected shelf.
+     * @param actual actual shelf.
+     */
     private void assertDeepEquals(Shelf expected, Shelf actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getColumn(), actual.getColumn());
@@ -343,6 +362,9 @@ public class ShelfManagerImplTest {
         assertEquals(expected.isSecure(), actual.isSecure());
     }
 
+    /**
+     * Comparator of shelves on item id.
+     */
     private Comparator<Shelf> itemComparator = new Comparator<Shelf>() {
 
         @Override

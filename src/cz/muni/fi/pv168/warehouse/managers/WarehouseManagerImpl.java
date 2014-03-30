@@ -10,16 +10,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Class will serve to manage warehouse.
- *
  * @author Oliver Mrázik & Martin Zaťko
  * @version 2014-03-30
  */
@@ -46,7 +42,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
         Shelf shelf;
 
         checkDataSource();
-        checkItem(item);
+        checkObject(item);
 
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.ITEM.shelfid FROM ADMIN.ITEM JOIN " +
@@ -88,7 +84,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
     @Override
     public List<Item> listAllItemsOnShelf(Shelf shelf) throws MethodFailureException {
         checkDataSource();
-        checkShelf(shelf);
+        checkObject(shelf);
 
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT ADMIN.ITEM.id, weight, insertionDate, " +
@@ -113,8 +109,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
     @Override
     public void putItemOnShelf(Shelf shelf, Item item) throws MethodFailureException, ShelfAttributeException {
         checkDataSource();
-        checkShelf(shelf);
-        checkItem(item);
+        checkObject(shelf);
+        checkObject(item);
 
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);
@@ -128,6 +124,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 if (query.executeUpdate() != 1) {
                     throw new SQLException("Error: More than 1 item with that id");
                 }
+                con.commit();
             } catch (SQLException ex) {
                 try {
                     if (con != null) {
@@ -141,8 +138,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         if (con != null) {
                             con.setAutoCommit(true);
                         }
-                    } catch (SQLException ex1) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex1);
+                    } catch (SQLException ex2) {
+                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
                     }
                 }
             }
@@ -155,7 +152,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
     @Override
     public Item withdrawItemFromShelf(Item item) throws MethodFailureException {
         checkDataSource();
-        checkItem(item);
+        checkObject(item);
 
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);
@@ -163,19 +160,28 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 query.setInt(1, item.getId());
 
                 if (query.executeUpdate() != 1) {
-                    throw new SQLException("Something went wrong while putting on shelf.");
+                    throw new SQLException("Error: Item can't be withdraw");
                 }
+                con.commit();
                 return item;
-            } catch (SQLException e) {
-                con.rollback();
-                logger.log(Level.SEVERE, "Crash while updating DB.", e);
-                throw new MethodFailureException("Crash while updating DB.", e);
+            } catch (SQLException ex) {
+                if (con != null) {
+                    con.rollback();
+                }
+                logger.log(Level.SEVERE, "Error rollback database", ex);
+                throw new MethodFailureException("Error rollback database", ex);
             } finally {
-                con.setAutoCommit(true);
+                try {
+                    if (con != null) {
+                        con.setAutoCommit(true);
+                    }
+                } catch (SQLException ex2) {
+                    logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Crash while updating DB.", ex);
+            throw new MethodFailureException("Crash while updating DB.", ex);
         }
     }
 
@@ -201,9 +207,9 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     return list;
                 }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error removing all expired items", ex);
+            throw new MethodFailureException("Error removing all expired items", ex);
         }
     }
 
@@ -223,9 +229,9 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     return list;
                 }
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error listing shelves with some free space", ex);
+            throw new MethodFailureException("Error listing shelves with some free space", ex);
         }
     }
 
@@ -245,11 +251,16 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", e);
-            throw new MethodFailureException("Crash while updating DB.", e);
+            logger.log(Level.SEVERE, "Error listing items without shelf", e);
+            throw new MethodFailureException("Error listing items without shelf", e);
         }
     }
-
+    /**
+     * Method creates shelf from table result set.
+     * @param rs table result set.
+     * @return newly created shelf.
+     * @throws SQLException when some attribute is null.
+     */
     private Shelf fillShelf(ResultSet rs) throws SQLException{
         Shelf shelf = new Shelf();
         shelf.setId(rs.getInt("id"));
@@ -260,7 +271,12 @@ public class WarehouseManagerImpl implements WarehouseManager {
         shelf.setSecure(rs.getBoolean("secure"));
         return shelf;
     }
-
+    /**
+     * Method creates item from table result set.
+     * @param rs table result set.
+     * @return newly created item.
+     * @throws SQLException when some attribute is null.
+     */
     private Item fillItem(ResultSet rs) throws SQLException{
         Item item = new Item();
         item.setId(rs.getInt("id"));
@@ -271,18 +287,30 @@ public class WarehouseManagerImpl implements WarehouseManager {
         return item;
     }
 
-    private void checkItem(Item item) {
-        if (item.getId() == null) {
-            throw new NullPointerException("id");
+    /**
+     * Method checks if given object is not null. (Valid objects are Shelf and Item).
+     * @param obj tested object.
+     */
+    private void checkObject(Object obj) {
+        if(obj instanceof Item) {
+            if (((Item) obj).getId() == null) {
+                throw new NullPointerException("id");
+            }
+        }
+        if(obj instanceof Shelf) {
+            if (((Shelf) obj).getId() == null) {
+                throw new NullPointerException("id");
+            }
         }
     }
 
-    private void checkShelf(Shelf shelf) {
-        if (shelf.getId() == null) {
-            throw new NullPointerException("id");
-        }
-    }
-
+    /**
+     * Method checks if inserting item into shelf is valid.
+     * @param shelf given shelf.
+     * @param item given item.
+     * @throws MethodFailureException when listing all actual items on shelf throw exception.
+     * @throws ShelfAttributeException when any of the conditions will not be met.
+     */
     private void checkShelfAttribute(Shelf shelf, Item item) throws MethodFailureException, ShelfAttributeException {
         double weight = 0;
         List<Item> list = listAllItemsOnShelf(shelf);

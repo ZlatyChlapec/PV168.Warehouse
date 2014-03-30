@@ -17,8 +17,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
- * tests class to Item Manager.
- *
+ * Tests class to Item Manager.
  * @author Oliver Mrazik
  * @version 2014-3-23
  */
@@ -265,6 +264,13 @@ public class ItemManagerImplTest {
         manager.updateItem(item);
     }
 
+    /**
+     * Method creates new Item with given parameters.
+     * @param weight items weight.
+     * @param storeDays items storeDays.
+     * @param dangerous items dangerous.
+     * @return new Item.
+     */
     private static Item newItem(Double weight, int storeDays, boolean dangerous) {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -282,12 +288,20 @@ public class ItemManagerImplTest {
         return item;
     }
 
+    /**
+     * Method tests attributes of expected and actual item. Should be equals.
+     * @param expected expected item.
+     * @param actual actual item.
+     */
     public void assertDeepEquals(Item expected, Item actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getInsertionDate(), actual.getInsertionDate());
         assertEquals(expected.getWeight(), actual.getWeight(), 0.01D);
     }
 
+    /**
+     * Comparator of items on item id.
+     */
     public static Comparator<Item> comparatorId = new Comparator<Item>() {
 
         @Override
