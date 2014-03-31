@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Tests class to Warehouse Manager.
@@ -101,6 +102,12 @@ public class WarehouseManagerImplTest {
         Shelf result = warehouseManager.findShelfWithItem(item1);
         assertEquals(shelf2, result);
         assertDeepEquals(shelf2, result);
+    }
+
+    @Test
+    public void testFindShelfWithItemWithoutShelf () throws MethodFailureException {
+        Shelf result = warehouseManager.findShelfWithItem(item1);
+        assertNull(result);
     }
 
     @Test(expected = NullPointerException.class)

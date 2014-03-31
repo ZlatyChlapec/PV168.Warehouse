@@ -10,7 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,8 +37,6 @@ public class WarehouseManagerImpl implements WarehouseManager {
         }
     }
 
-    //TODO co ked item nema shelf ??? Preco exceptiony ? nemala by byt aj moznost s NULL?
-
     @Override
     public Shelf findShelfWithItem(Item item) throws MethodFailureException {
         int shelfid;
@@ -55,7 +56,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                             throw new SQLException("Error: More rows with same id found");
                         }
                     } else {
-                        throw new SQLException("Something went wrong while withdrawing from db.");
+                        return null;
                     }
 
                     try (PreparedStatement query1 = con.prepareStatement("SELECT id,col,row,maxWeight,capacity,secure " +
