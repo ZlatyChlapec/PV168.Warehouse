@@ -221,8 +221,6 @@ public class ShelfManagerImpl implements ShelfManager {
                         logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.log(Level.SEVERE, "Error updating shelf", ex);
-                throw new MethodFailureException("Error updating shelf", ex);
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Error updating shelf", ex);
