@@ -74,10 +74,14 @@ public class MainWindow extends JFrame {
         deleteShelfButton = new JButton();
         listAllItemsLabel = new JLabel();
         listAllShelvesLabel = new JLabel();
+        updateItemButton = new JButton();
+        updateShelfButton = new JButton();
         infoPanel = new JPanel();
         textOutputLabel = new JLabel();
 
         //======== this ========
+        setTitle("Warehouse Manager");
+        setResizable(false);
         setForeground(Color.black);
         Container contentPane = getContentPane();
 
@@ -118,27 +122,28 @@ public class MainWindow extends JFrame {
             submitItemPanelLayout.setHorizontalGroup(
                     submitItemPanelLayout.createParallelGroup()
                             .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                    .addContainerGap()
-                                    .addComponent(panelTitleLabel)
+                                    .addGroup(submitItemPanelLayout.createParallelGroup()
+                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                    .addContainerGap()
+                                                    .addComponent(panelTitleLabel))
+                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                    .addGap(14, 14, 14)
+                                                    .addGroup(submitItemPanelLayout.createParallelGroup()
+                                                            .addComponent(weightLabel)
+                                                            .addComponent(weightTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
+                                                    .addGap(30, 30, 30)
+                                                    .addGroup(submitItemPanelLayout.createParallelGroup()
+                                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                    .addComponent(storeDaysTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+                                                                    .addGap(40, 40, 40)
+                                                                    .addComponent(dangerousCheckBox)
+                                                                    .addGap(50, 50, 50)
+                                                                    .addComponent(itemButton))
+                                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                    .addComponent(storeDaysLabel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
+                                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                    .addComponent(dangerousLabel)))))
                                     .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                    .addGap(14, 14, 14)
-                                    .addGroup(submitItemPanelLayout.createParallelGroup()
-                                            .addComponent(weightLabel)
-                                            .addComponent(weightTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
-                                    .addGap(30, 30, 30)
-                                    .addGroup(submitItemPanelLayout.createParallelGroup()
-                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                    .addComponent(storeDaysTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(40, 40, 40)
-                                                    .addComponent(dangerousCheckBox))
-                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                    .addComponent(storeDaysLabel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addComponent(dangerousLabel)))
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
-                                    .addComponent(itemButton, GroupLayout.PREFERRED_SIZE, 125, GroupLayout.PREFERRED_SIZE)
-                                    .addGap(29, 29, 29))
             );
             submitItemPanelLayout.setVerticalGroup(
                     submitItemPanelLayout.createParallelGroup()
@@ -158,7 +163,7 @@ public class MainWindow extends JFrame {
                                                             .addComponent(storeDaysTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                                                     .addGap(4, 4, 4))
                                             .addComponent(dangerousCheckBox)
-                                            .addComponent(itemButton, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(itemButton))
                                     .addGap(74, 74, 74))
             );
         }
@@ -238,15 +243,15 @@ public class MainWindow extends JFrame {
                                                     .addGap(30, 30, 30)
                                                     .addComponent(secureCheckBox)))
                                     .addGap(35, 35, 35)
-                                    .addComponent(shelfbutton, GroupLayout.PREFERRED_SIZE, 125, GroupLayout.PREFERRED_SIZE)
-                                    .addContainerGap(16, Short.MAX_VALUE))
+                                    .addComponent(shelfbutton)
+                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             );
             submitShelfPanelLayout.setVerticalGroup(
                     submitShelfPanelLayout.createParallelGroup()
                             .addGroup(GroupLayout.Alignment.TRAILING, submitShelfPanelLayout.createSequentialGroup()
                                     .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                            .addComponent(shelfbutton, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(shelfbutton)
                                             .addGroup(submitShelfPanelLayout.createSequentialGroup()
                                                     .addComponent(panelTitleLabel2, GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE)
                                                     .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -277,10 +282,6 @@ public class MainWindow extends JFrame {
                 itemsTable.setFont(new Font("Century", Font.PLAIN, 14));
                 itemsTable.setModel(new DefaultTableModel(
                         new Object[][]{
-                                {null, null, null},
-                                {null, null, null},
-                                {null, null, null},
-                                {null, null, null}
                         },
                         new String[]{
                                 "Weight", "Expiration", "Dangerous"
@@ -325,29 +326,25 @@ public class MainWindow extends JFrame {
                 //---- shelvesTable ----
                 shelvesTable.setFont(new Font("Century", Font.PLAIN, 14));
                 shelvesTable.setModel(new DefaultTableModel(
-                        new Object [][] {
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null}
+                        new Object[][]{
                         },
-                        new String [] {
+                        new String[]{
                                 "Column", "Row", "Maximal Weight", "Capacity", "Secure"
                         }
-                ){
-                    Class[] types = new Class [] {
+                ) {
+                    Class[] types = new Class[]{
                             Integer.class, Integer.class, Double.class, Integer.class, Boolean.class
                     };
-                    boolean[] canEdit = new boolean [] {
+                    boolean[] canEdit = new boolean[]{
                             false, false, false, false, false
                     };
 
                     public Class getColumnClass(int columnIndex) {
-                        return types [columnIndex];
+                        return types[columnIndex];
                     }
 
                     public boolean isCellEditable(int rowIndex, int columnIndex) {
-                        return canEdit [columnIndex];
+                        return canEdit[columnIndex];
                     }
                 });
                 shelvesTable.getTableHeader().setReorderingAllowed(false);
@@ -398,47 +395,68 @@ public class MainWindow extends JFrame {
             listAllShelvesLabel.setText("List of all shelves");
             listAllShelvesLabel.setFont(new Font("Century", Font.PLAIN, 16));
 
+            //---- updateItemButton ----
+            updateItemButton.setText("Update selected item");
+            updateItemButton.setFont(new Font("Century", Font.PLAIN, 14));
+
+            //---- updateShelfButton ----
+            updateShelfButton.setText("Update selected shelf");
+            updateShelfButton.setFont(new Font("Century", Font.PLAIN, 14));
+            updateShelfButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteShelfButtonActionPerformed(e);
+                }
+            });
+
             GroupLayout printoutPanelLayout = new GroupLayout(printoutPanel);
             printoutPanel.setLayout(printoutPanelLayout);
             printoutPanelLayout.setHorizontalGroup(
                     printoutPanelLayout.createParallelGroup()
                             .addGroup(printoutPanelLayout.createSequentialGroup()
-                                    .addGap(34, 34, 34)
-                                    .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 320, GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
-                                    .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 478, GroupLayout.PREFERRED_SIZE)
-                                    .addContainerGap())
-                            .addGroup(GroupLayout.Alignment.TRAILING, printoutPanelLayout.createSequentialGroup()
-                                    .addGap(108, 108, 108)
-                                    .addComponent(deleteItemButton, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 271, Short.MAX_VALUE)
-                                    .addComponent(deleteShelfButton, GroupLayout.PREFERRED_SIZE, 175, GroupLayout.PREFERRED_SIZE)
-                                    .addGap(154, 154, 154))
-                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                    .addGap(130, 130, 130)
+                                    .addGap(132, 132, 132)
                                     .addComponent(listAllItemsLabel)
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 322, Short.MAX_VALUE)
+                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 326, Short.MAX_VALUE)
                                     .addComponent(listAllShelvesLabel)
                                     .addGap(186, 186, 186))
+                            .addGroup(printoutPanelLayout.createSequentialGroup()
+                                    .addGap(12, 12, 12)
+                                    .addGroup(printoutPanelLayout.createParallelGroup()
+                                            .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                    .addComponent(updateItemButton)
+                                                    .addGap(18, 18, 18)
+                                                    .addComponent(deleteItemButton)
+                                                    .addGap(0, 0, Short.MAX_VALUE))
+                                            .addComponent(itemsScrollPane, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE))
+                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                            .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                                                    .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 483, GroupLayout.PREFERRED_SIZE)
+                                                    .addGap(20, 20, 20))
+                                            .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                    .addGap(73, 73, 73)
+                                                    .addComponent(updateShelfButton)
+                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
+                                                    .addComponent(deleteShelfButton)
+                                                    .addGap(60, 60, 60))))
             );
             printoutPanelLayout.setVerticalGroup(
-                printoutPanelLayout.createParallelGroup()
-                    .addGroup(GroupLayout.Alignment.TRAILING, printoutPanelLayout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(listAllItemsLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(listAllShelvesLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(printoutPanelLayout.createParallelGroup()
-                            .addComponent(itemsScrollPane, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
-                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 305, GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(deleteShelfButton, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(deleteItemButton, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(13, Short.MAX_VALUE))
+                    printoutPanelLayout.createParallelGroup()
+                            .addGroup(GroupLayout.Alignment.TRAILING, printoutPanelLayout.createSequentialGroup()
+                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                            .addComponent(listAllItemsLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(listAllShelvesLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))
+                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(itemsScrollPane, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
+                                            .addComponent(shelvesScrollPane, GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
+                                    .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                            .addComponent(deleteItemButton)
+                                            .addComponent(updateItemButton)
+                                            .addComponent(deleteShelfButton)
+                                            .addComponent(updateShelfButton))
+                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             );
         }
 
@@ -460,10 +478,9 @@ public class MainWindow extends JFrame {
             );
             infoPanelLayout.setVerticalGroup(
                     infoPanelLayout.createParallelGroup()
-                            .addGroup(GroupLayout.Alignment.TRAILING, infoPanelLayout.createSequentialGroup()
-                                    .addContainerGap(88, Short.MAX_VALUE)
+                            .addGroup(infoPanelLayout.createSequentialGroup()
                                     .addComponent(textOutputLabel, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
-                                    .addContainerGap())
+                                    .addGap(0, 67, Short.MAX_VALUE))
             );
         }
 
@@ -472,29 +489,29 @@ public class MainWindow extends JFrame {
         contentPaneLayout.setHorizontalGroup(
                 contentPaneLayout.createParallelGroup()
                         .addGroup(contentPaneLayout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addGroup(contentPaneLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
-                                        .addGroup(GroupLayout.Alignment.LEADING, contentPaneLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(contentPaneLayout.createParallelGroup()
+                                        .addGroup(contentPaneLayout.createSequentialGroup()
                                                 .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(infoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                        .addComponent(submitShelfPanel, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .addContainerGap(17, Short.MAX_VALUE))
-                        .addGroup(GroupLayout.Alignment.TRAILING, contentPaneLayout.createSequentialGroup()
-                                .addContainerGap(15, Short.MAX_VALUE)
-                                .addComponent(printoutPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap())
+                                                .addGap(18, 18, 18)
+                                                .addComponent(infoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(54, 54, 54))
+                                        .addGroup(contentPaneLayout.createSequentialGroup()
+                                                .addComponent(submitShelfPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addContainerGap(90, Short.MAX_VALUE))
+                                        .addGroup(contentPaneLayout.createSequentialGroup()
+                                                .addComponent(printoutPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(0, 4, Short.MAX_VALUE))))
         );
         contentPaneLayout.setVerticalGroup(
                 contentPaneLayout.createParallelGroup()
                         .addGroup(contentPaneLayout.createSequentialGroup()
-                                .addGap(22, 22, 22)
                                 .addGroup(contentPaneLayout.createParallelGroup()
                                         .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(infoPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(infoPanel, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(submitShelfPanel, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(printoutPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -533,6 +550,8 @@ public class MainWindow extends JFrame {
     private JButton deleteShelfButton;
     private JLabel listAllItemsLabel;
     private JLabel listAllShelvesLabel;
+    private JButton updateItemButton;
+    private JButton updateShelfButton;
     private JPanel infoPanel;
     private JLabel textOutputLabel;
 }
