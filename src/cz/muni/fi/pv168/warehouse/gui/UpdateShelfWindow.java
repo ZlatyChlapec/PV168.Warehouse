@@ -14,7 +14,7 @@ public class UpdateShelfWindow extends JFrame {
     }
 
     private void shelfbuttonActionPerformed(ActionEvent e) {
-        // TODO add your code here
+        dispose();
     }
 
     private void initComponents() {

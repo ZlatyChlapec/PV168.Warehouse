@@ -14,7 +14,7 @@ public class UpdateItemWindow extends JFrame {
     }
 
     private void itemButtonActionPerformed(ActionEvent e) {
-        // TODO add your code here
+        dispose();
     }
 
     private void initComponents() {
