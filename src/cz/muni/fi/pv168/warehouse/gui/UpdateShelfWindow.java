@@ -34,7 +34,6 @@ public class UpdateShelfWindow extends JFrame {
         //======== this ========
         setTitle("Update selected record");
         setUndecorated(true);
-        setAlwaysOnTop(true);
         setResizable(false);
         getRootPane().setWindowDecorationStyle(JRootPane.WHEN_IN_FOCUSED_WINDOW);
         Container contentPane = getContentPane();

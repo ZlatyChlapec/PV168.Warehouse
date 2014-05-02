@@ -1,19 +1,24 @@
 package cz.muni.fi.pv168.warehouse.gui;
 
-import org.apache.derby.client.am.DateTime;
+import cz.muni.fi.pv168.warehouse.entities.Item;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerAdapter;
-import java.awt.event.ContainerEvent;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Slapy
  */
 public class MainWindow extends JFrame {
+
+    private UpdateItemWindow updateFrame = new UpdateItemWindow();
+    private UpdateShelfWindow shelfFrame = new UpdateShelfWindow();
+
     public MainWindow() {
         initComponents();
     }
@@ -34,12 +39,22 @@ public class MainWindow extends JFrame {
         // TODO add your code here
     }
 
-    private void itemsTableComponentAdded(ContainerEvent e) {
-        // TODO add your code here
+    private void updateItemButtonActionPerformed(ActionEvent e) {
+        if(updateFrame.isVisible()){
+            updateFrame.requestFocus();
+        }else{
+            updateFrame.setVisible(true);
+        }
+        updateFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
-    private void shelvesTableComponentAdded(ContainerEvent e) {
-        // TODO add your code here
+    private void updateShelfButtonActionPerformed(ActionEvent e) {
+        if(updateFrame.isVisible()){
+            updateFrame.requestFocus();
+        }else{
+            updateFrame.setVisible(true);
+        }
+        shelfFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
     private void initComponents() {
@@ -82,7 +97,6 @@ public class MainWindow extends JFrame {
         //======== this ========
         setTitle("Warehouse Manager");
         setResizable(false);
-        setForeground(Color.black);
         Container contentPane = getContentPane();
 
         //======== submitItemPanel ========
@@ -280,6 +294,19 @@ public class MainWindow extends JFrame {
 
                 //---- itemsTable ----
                 itemsTable.setFont(new Font("Century", Font.PLAIN, 14));
+                SwingWorkerMainWindow worker = new SwingWorkerMainWindow();
+                worker.execute();
+                List<Item> tempy = null;
+                try {
+                    tempy = worker.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+                for (Item i : tempy) {
+                    System.out.println(i.getId());
+                }
                 itemsTable.setModel(new DefaultTableModel(
                         new Object[][]{
                         },
@@ -288,7 +315,7 @@ public class MainWindow extends JFrame {
                         }
                 ) {
                     Class[] types = new Class[]{
-                            Double.class, DateTime.class, Boolean.class
+                            Double.class, Date.class, Boolean.class
                     };
                     boolean[] canEdit = new boolean[]{
                             false, false, false
@@ -302,6 +329,10 @@ public class MainWindow extends JFrame {
                         return canEdit[columnIndex];
                     }
                 });
+                DefaultTableModel model = (DefaultTableModel) itemsTable.getModel();
+                for (Item i : tempy) {
+                    model.addRow(new Object[]{i.getWeight(), i.getInsertionDate(), i.isDangerous()});
+                }
                 itemsTable.getTableHeader().setReorderingAllowed(false);
                 itemsTable.getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                 if (itemsTable.getColumnModel().getColumnCount() > 0) {
@@ -310,12 +341,6 @@ public class MainWindow extends JFrame {
                     itemsTable.getColumnModel().getColumn(2).setResizable(false);
                 }
                 itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
-                itemsTable.addContainerListener(new ContainerAdapter() {
-                    @Override
-                    public void componentAdded(ContainerEvent e) {
-                        itemsTableComponentAdded(e);
-                    }
-                });
 
                 itemsScrollPane.setViewportView(itemsTable);
             }
@@ -357,12 +382,6 @@ public class MainWindow extends JFrame {
                     shelvesTable.getColumnModel().getColumn(4).setResizable(false);
                 }
                 shelvesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
-                shelvesTable.addContainerListener(new ContainerAdapter() {
-                    @Override
-                    public void componentAdded(ContainerEvent e) {
-                        shelvesTableComponentAdded(e);
-                    }
-                });
 
                 shelvesScrollPane.setViewportView(shelvesTable);
             }
@@ -398,6 +417,12 @@ public class MainWindow extends JFrame {
             //---- updateItemButton ----
             updateItemButton.setText("Update selected item");
             updateItemButton.setFont(new Font("Century", Font.PLAIN, 14));
+            updateItemButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateItemButtonActionPerformed(e);
+                }
+            });
 
             //---- updateShelfButton ----
             updateShelfButton.setText("Update selected shelf");
@@ -405,7 +430,7 @@ public class MainWindow extends JFrame {
             updateShelfButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    deleteShelfButtonActionPerformed(e);
+                    updateShelfButtonActionPerformed(e);
                 }
             });
 
