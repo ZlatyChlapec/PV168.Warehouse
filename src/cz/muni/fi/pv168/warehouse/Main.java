@@ -3,6 +3,8 @@ package cz.muni.fi.pv168.warehouse;
 import cz.muni.fi.pv168.warehouse.gui.MainWindow;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author Slapy
@@ -10,7 +12,7 @@ import javax.swing.*;
  */
 public class Main {
 
-    public static void main(String...args) {
+    public static void main(String...args) throws UnsupportedEncodingException, FileNotFoundException {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

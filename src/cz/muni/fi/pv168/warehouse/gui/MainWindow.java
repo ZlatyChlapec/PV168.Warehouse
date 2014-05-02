@@ -1,14 +1,17 @@
 package cz.muni.fi.pv168.warehouse.gui;
 
 import cz.muni.fi.pv168.warehouse.entities.Item;
+import cz.muni.fi.pv168.warehouse.entities.Shelf;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -16,11 +19,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class MainWindow extends JFrame {
 
+    private ResourceBundle myResources;
     private UpdateItemWindow updateFrame = new UpdateItemWindow();
     private UpdateShelfWindow shelfFrame = new UpdateShelfWindow();
 
     public MainWindow() {
-        initComponents();
+        try {
+            myResources = ResourceBundle.getBundle("lang", Locale.getDefault());
+        } catch (MissingResourceException e) {
+            myResources = ResourceBundle.getBundle("lang", new Locale("en", "GB"));
+        }
+        try {
+            initComponents();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     private void itemButtonActionPerformed(ActionEvent e) {
@@ -57,7 +70,54 @@ public class MainWindow extends JFrame {
         shelfFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
-    private void initComponents() {
+    private String printOut(String value) throws UnsupportedEncodingException {
+        return new String(myResources.getString(value).getBytes("ISO-8859-1"), "UTF-8");
+    }
+
+    private String getExpirationTime(Date insertionDate, int storeDays) {
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(insertionDate);
+        cal.add(Calendar.DATE, storeDays);
+        SimpleDateFormat myFormat = new SimpleDateFormat("dd-MM-yyyy");
+        return myFormat.format(cal.getTime());
+    }
+
+    private void listAllItems() {
+
+        DefaultTableModel model = (DefaultTableModel) itemsTable.getModel();
+        SwingWorkerListAllItems worker = new SwingWorkerListAllItems();
+        worker.execute();
+
+        try {
+            for (Item i : worker.get()) {
+                model.addRow(new Object[]{i.getWeight(), getExpirationTime(i.getInsertionDate(), i.getStoreDays()), i.isDangerous()});
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void listAllShelves() {
+
+        DefaultTableModel model = (DefaultTableModel) shelvesTable.getModel();
+        SwingWorkerListAllShelves worker = new SwingWorkerListAllShelves();
+        worker.execute();
+
+        try {
+            for (Shelf i : worker.get()) {
+                model.addRow(new Object[]{i.getColumn(), i.getRow(), i.getMaxWeight(), i.getCapacity(), i.isSecure()});
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initComponents() throws UnsupportedEncodingException {
         submitItemPanel = new JPanel();
         weightTextField = new JTextField();
         panelTitleLabel = new JLabel();
@@ -103,26 +163,26 @@ public class MainWindow extends JFrame {
         {
 
             //---- panelTitleLabel ----
-            panelTitleLabel.setText("Item");
+            panelTitleLabel.setText(printOut("item"));
             panelTitleLabel.setFont(new Font("Century", Font.BOLD, 18));
 
             //---- weightLabel ----
-            weightLabel.setText("Weight");
+            weightLabel.setText(printOut("weight"));
             weightLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- dangerousCheckBox ----
             dangerousCheckBox.setFont(new Font("Century", Font.PLAIN, 16));
 
             //---- storeDaysLabel ----
-            storeDaysLabel.setText("Days to store");
+            storeDaysLabel.setText(printOut("storeDays"));
             storeDaysLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- dangerousLabel ----
-            dangerousLabel.setText("Dangerous");
+            dangerousLabel.setText(printOut("dangerous"));
             dangerousLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- itemButton ----
-            itemButton.setText("Insert");
+            itemButton.setText(printOut("insert"));
             itemButton.setFont(new Font("Century", Font.PLAIN, 14));
             itemButton.addActionListener(new ActionListener() {
                 @Override
@@ -186,34 +246,34 @@ public class MainWindow extends JFrame {
         {
 
             //---- panelTitleLabel2 ----
-            panelTitleLabel2.setText("Shelf");
+            panelTitleLabel2.setText(printOut("shelf"));
             panelTitleLabel2.setFont(new Font("Century", Font.BOLD, 18));
 
             //---- columnLabel ----
-            columnLabel.setText("Column");
+            columnLabel.setText(printOut("column"));
             columnLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- secureCheckBox ----
             secureCheckBox.setFont(new Font("Century", Font.PLAIN, 16));
 
             //---- rowLabel ----
-            rowLabel.setText("Row");
+            rowLabel.setText(printOut("row"));
             rowLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- secureLabel ----
-            secureLabel.setText("Secure");
+            secureLabel.setText(printOut("secure"));
             secureLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- maxWeightLabel ----
-            maxWeightLabel.setText("Maximal weight");
+            maxWeightLabel.setText(printOut("maxWeight"));
             maxWeightLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- capacityLabel ----
-            capacityLabel.setText("Capacity");
+            capacityLabel.setText(printOut("capacity"));
             capacityLabel.setFont(new Font("Century", Font.PLAIN, 14));
 
             //---- shelfbutton ----
-            shelfbutton.setText("Insert");
+            shelfbutton.setText(printOut("insert"));
             shelfbutton.setFont(new Font("Century", Font.PLAIN, 14));
             shelfbutton.addActionListener(new ActionListener() {
                 @Override
@@ -289,33 +349,22 @@ public class MainWindow extends JFrame {
         //======== printoutPanel ========
         {
 
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
             //======== itemsScrollPane ========
             {
 
                 //---- itemsTable ----
                 itemsTable.setFont(new Font("Century", Font.PLAIN, 14));
-                SwingWorkerMainWindow worker = new SwingWorkerMainWindow();
-                worker.execute();
-                List<Item> tempy = null;
-                try {
-                    tempy = worker.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-                for (Item i : tempy) {
-                    System.out.println(i.getId());
-                }
                 itemsTable.setModel(new DefaultTableModel(
                         new Object[][]{
                         },
                         new String[]{
-                                "Weight", "Expiration", "Dangerous"
+                                printOut("weight"), printOut("expiration"), printOut("dangerous")
                         }
                 ) {
                     Class[] types = new Class[]{
-                            Double.class, Date.class, Boolean.class
+                            Double.class, String.class, Boolean.class
                     };
                     boolean[] canEdit = new boolean[]{
                             false, false, false
@@ -329,18 +378,19 @@ public class MainWindow extends JFrame {
                         return canEdit[columnIndex];
                     }
                 });
-                DefaultTableModel model = (DefaultTableModel) itemsTable.getModel();
-                for (Item i : tempy) {
-                    model.addRow(new Object[]{i.getWeight(), i.getInsertionDate(), i.isDangerous()});
-                }
                 itemsTable.getTableHeader().setReorderingAllowed(false);
                 itemsTable.getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                 if (itemsTable.getColumnModel().getColumnCount() > 0) {
                     itemsTable.getColumnModel().getColumn(0).setResizable(false);
                     itemsTable.getColumnModel().getColumn(1).setResizable(false);
                     itemsTable.getColumnModel().getColumn(2).setResizable(false);
+
+                    itemsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+                    itemsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+                    itemsTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
                 }
                 itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
+                listAllItems();
 
                 itemsScrollPane.setViewportView(itemsTable);
             }
@@ -354,7 +404,7 @@ public class MainWindow extends JFrame {
                         new Object[][]{
                         },
                         new String[]{
-                                "Column", "Row", "Maximal Weight", "Capacity", "Secure"
+                                printOut("column"), printOut("row"), printOut("maxWeight"), printOut("capacity"), printOut("secure")
                         }
                 ) {
                     Class[] types = new Class[]{
@@ -380,14 +430,21 @@ public class MainWindow extends JFrame {
                     shelvesTable.getColumnModel().getColumn(2).setResizable(false);
                     shelvesTable.getColumnModel().getColumn(3).setResizable(false);
                     shelvesTable.getColumnModel().getColumn(4).setResizable(false);
+
+                    shelvesTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+                    shelvesTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+                    shelvesTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+                    shelvesTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+                    shelvesTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
                 }
                 shelvesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
+                listAllShelves();
 
                 shelvesScrollPane.setViewportView(shelvesTable);
             }
 
             //---- deleteItemButton ----
-            deleteItemButton.setText("Delete selected item");
+            deleteItemButton.setText(printOut("deleteSelectedItem"));
             deleteItemButton.setFont(new Font("Century", Font.PLAIN, 14));
             deleteItemButton.addActionListener(new ActionListener() {
                 @Override
@@ -397,7 +454,7 @@ public class MainWindow extends JFrame {
             });
 
             //---- deleteShelfButton ----
-            deleteShelfButton.setText("Delete selected shelf");
+            deleteShelfButton.setText(printOut("deleteSelectedShelf"));
             deleteShelfButton.setFont(new Font("Century", Font.PLAIN, 14));
             deleteShelfButton.addActionListener(new ActionListener() {
                 @Override
@@ -407,15 +464,15 @@ public class MainWindow extends JFrame {
             });
 
             //---- listAllItemsLabel ----
-            listAllItemsLabel.setText("List of all items");
+            listAllItemsLabel.setText(printOut("listOfAllItems"));
             listAllItemsLabel.setFont(new Font("Century", Font.PLAIN, 16));
 
             //---- listAllShelvesLabel ----
-            listAllShelvesLabel.setText("List of all shelves");
+            listAllShelvesLabel.setText(printOut("listOfAllShelves"));
             listAllShelvesLabel.setFont(new Font("Century", Font.PLAIN, 16));
 
             //---- updateItemButton ----
-            updateItemButton.setText("Update selected item");
+            updateItemButton.setText(printOut("updateSelectedItem"));
             updateItemButton.setFont(new Font("Century", Font.PLAIN, 14));
             updateItemButton.addActionListener(new ActionListener() {
                 @Override
@@ -425,7 +482,7 @@ public class MainWindow extends JFrame {
             });
 
             //---- updateShelfButton ----
-            updateShelfButton.setText("Update selected shelf");
+            updateShelfButton.setText(printOut("updateSelectedShelf"));
             updateShelfButton.setFont(new Font("Century", Font.PLAIN, 14));
             updateShelfButton.addActionListener(new ActionListener() {
                 @Override
