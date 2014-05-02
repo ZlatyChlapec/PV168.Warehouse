@@ -53,19 +53,23 @@ public class MainWindow extends JFrame {
     }
 
     private void updateItemButtonActionPerformed(ActionEvent e) {
-        if(updateFrame.isVisible()){
+        if (shelfFrame.isVisible()) {
+            shelfFrame.requestFocus();
+        } else if (updateFrame.isVisible()) {
             updateFrame.requestFocus();
-        }else{
+        } else {
             updateFrame.setVisible(true);
         }
         updateFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
     private void updateShelfButtonActionPerformed(ActionEvent e) {
-        if(updateFrame.isVisible()){
+        if (updateFrame.isVisible()) {
             updateFrame.requestFocus();
-        }else{
-            updateFrame.setVisible(true);
+        } else if (shelfFrame.isVisible()){
+            shelfFrame.requestFocus();
+        } else {
+            shelfFrame.setVisible(true);
         }
         shelfFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
