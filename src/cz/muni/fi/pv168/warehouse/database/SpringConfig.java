@@ -3,7 +3,7 @@ package cz.muni.fi.pv168.warehouse.database;
 import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
 import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
 import cz.muni.fi.pv168.warehouse.managers.WarehouseManagerImpl;
-import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
+import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
