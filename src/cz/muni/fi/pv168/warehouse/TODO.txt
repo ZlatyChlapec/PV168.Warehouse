@@ -1,0 +1,10 @@
+1. Zrejme treba obmedzit maximalnu velkost vahy aj kapacitu vsetkych veci, pretoze zadavat vysoke cisla je zbytocne
+2. Potom bude treba nahradit JTextField za JSpinner. Bude sa dat lepsie obmedzit (Kuba vravel, ze nemame nechat uzivatela pisat, lebo nebude vediet co)
+    - aj v update oknach
+    - bude to lepsie osetrenie proti tomu aby uzivatel nezadaval stringy do okienok
+3. V tabulke namiesto true/false needitovatelny checkbox
+4. Vyriesit Row a Column problem, lebo fakt neviem co s tym podla mna je to tam zbytocne :)
+5. Prazdnu oblast nahradime za LOGO (?)
+    - tzn., ze netreba tam ten JText logger. Ked bude treba nieco uzivatelovi oznamit spravime pop-up window.
+6. Do update okien pridat aj Cancel button
+7. Je problem odkazovat sa na ostatne classy lebo vsetko je private. Musime to dat do jendej classy vsetko aj s workermi.

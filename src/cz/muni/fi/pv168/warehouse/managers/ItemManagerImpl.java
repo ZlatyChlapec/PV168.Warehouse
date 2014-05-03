@@ -2,13 +2,13 @@ package cz.muni.fi.pv168.warehouse.managers;
 
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class will serve to manage items.
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class ItemManagerImpl implements ItemManager {
 
-    public static final Logger logger = Logger.getLogger(ItemManagerImpl.class.getName());
+    public static final Logger logger = LoggerFactory.getLogger(ItemManagerImpl.class);
     private DataSource dataSource;
 
     public void setDataSource(DataSource dataSource) {
@@ -26,12 +26,13 @@ public class ItemManagerImpl implements ItemManager {
 
     private void checkDataSource() {
         if (dataSource == null) {
+            logger.debug("DataSource je null");
             throw new IllegalStateException("Error: Data source is not set");
         }
     }
 
     @Override
-    public void createItem(Item item) throws MethodFailureException {
+    public Item createItem(Item item) throws MethodFailureException {
         checkDataSource();
         itemCheck(item);
         if (item.getId() != null) {
@@ -59,6 +60,7 @@ public class ItemManagerImpl implements ItemManager {
                     item.setId(rs.getInt(1));
                 }
                 connection.commit();
+                return item;
 
             } catch (SQLException ex) {
                 try {
@@ -66,22 +68,22 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     if (connection != null) {
                         try {
                             connection.setAutoCommit(true);
                         } catch (SQLException ex2) {
-                            logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                            logger.debug("Error setting autoCommit to true", ex2);
                         }
                     }
                 }
-                logger.log(Level.SEVERE, "Error creating item", ex);
+                logger.debug("Error creating item", ex);
                 throw new MethodFailureException("Error creating item", ex);
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error creating item", ex);
+            logger.debug("Error creating item", ex);
             throw new MethodFailureException("Error creating item", ex);
         }
     }
@@ -115,22 +117,22 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     if (connection != null) {
                         try {
                             connection.setAutoCommit(true);
                         } catch (SQLException ex2) {
-                            logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                            logger.debug("Error setting autoCommit to true", ex2);
                         }
                     }
                 }
-                logger.log(Level.SEVERE, "Error deleting item", ex);
+                logger.debug("Error deleting item", ex);
                 throw new MethodFailureException("Error deleting item", ex);
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error deleting item", ex);
+            logger.debug("Error deleting item", ex);
             throw new MethodFailureException("Error deleting item", ex);
         }
     }
@@ -150,7 +152,7 @@ public class ItemManagerImpl implements ItemManager {
                 return result;
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error listing all items", ex);
+            logger.debug("Error listing all items", ex);
             throw new MethodFailureException("Error listing all items", ex);
         }
     }
@@ -174,7 +176,7 @@ public class ItemManagerImpl implements ItemManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error finding item", ex);
+            logger.debug("Error finding item", ex);
             throw new MethodFailureException("Error finding item", ex);
         }
     }
@@ -210,7 +212,7 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -218,14 +220,14 @@ public class ItemManagerImpl implements ItemManager {
                             connection.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                        logger.debug("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.log(Level.SEVERE, "Error updating item", ex);
+                logger.debug("Error updating item", ex);
                 throw new MethodFailureException("Error updating item", ex);
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error updating item", ex);
+            logger.debug("Error updating item", ex);
             throw new MethodFailureException("Error updating item", ex);
         }
     }
@@ -251,7 +253,7 @@ public class ItemManagerImpl implements ItemManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error retrieving expiration", ex);
+            logger.debug("Error retrieving expiration", ex);
             throw new MethodFailureException("Error retrieving expiration", ex);
         }
     }

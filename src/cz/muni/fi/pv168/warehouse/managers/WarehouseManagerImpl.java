@@ -4,6 +4,8 @@ import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
 import cz.muni.fi.pv168.warehouse.exceptions.ShelfAttributeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -14,8 +16,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * Class will serve to manage warehouse.
@@ -24,7 +25,7 @@ import java.util.logging.Logger;
  */
 public class WarehouseManagerImpl implements WarehouseManager {
 
-    private final static Logger logger = Logger.getLogger(WarehouseManagerImpl.class.getName());
+    public static final Logger logger = LoggerFactory.getLogger(WarehouseManager.class);
     private DataSource dataSource;
 
     public void setDataSource(DataSource dataSource) {
@@ -77,7 +78,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error finding item", ex);
+            logger.debug("Error finding item", ex);
             throw new MethodFailureException("Error finding item", ex);
         }
     }
@@ -102,7 +103,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error listing all items on shelf", ex);
+            logger.debug("Error listing all items on shelf", ex);
             throw new MethodFailureException("Error listing all items on shelf", ex);
         }
     }
@@ -132,7 +133,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -140,12 +141,12 @@ public class WarehouseManagerImpl implements WarehouseManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                        logger.debug("Error setting autoCommit to true", ex2);
                     }
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error putting item on shelf", ex);
+            logger.debug("Error putting item on shelf", ex);
             throw new MethodFailureException("Error putting item on shelf", ex);
         }
     }
@@ -169,7 +170,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 if (con != null) {
                     con.rollback();
                 }
-                logger.log(Level.SEVERE, "Error rollback database", ex);
+                logger.debug("Error rollback database", ex);
                 throw new MethodFailureException("Error rollback database", ex);
             } finally {
                 try {
@@ -177,11 +178,11 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         con.setAutoCommit(true);
                     }
                 } catch (SQLException ex2) {
-                    logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                    logger.debug("Error setting autoCommit to true", ex2);
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Crash while updating DB.", ex);
+            logger.debug("Crash while updating DB.", ex);
             throw new MethodFailureException("Crash while updating DB.", ex);
         }
     }
@@ -209,7 +210,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error removing all expired items", ex);
+            logger.debug("Error removing all expired items", ex);
             throw new MethodFailureException("Error removing all expired items", ex);
         }
     }
@@ -231,7 +232,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error listing shelves with some free space", ex);
+            logger.debug("Error listing shelves with some free space", ex);
             throw new MethodFailureException("Error listing shelves with some free space", ex);
         }
     }
@@ -252,7 +253,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error listing items without shelf", e);
+            logger.debug("Error listing items without shelf", e);
             throw new MethodFailureException("Error listing items without shelf", e);
         }
     }

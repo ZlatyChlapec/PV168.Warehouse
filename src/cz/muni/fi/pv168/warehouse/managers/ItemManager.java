@@ -17,7 +17,7 @@ public interface ItemManager {
      * Method will create item.
      * @param item item we want to create.
      */
-    void createItem(Item item) throws MethodFailureException;
+    Item createItem(Item item) throws MethodFailureException;
 
     /**
      * Method will delete item.

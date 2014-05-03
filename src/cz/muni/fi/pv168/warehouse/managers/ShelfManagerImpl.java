@@ -2,13 +2,13 @@ package cz.muni.fi.pv168.warehouse.managers;
 
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class will serve to manage items.
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class ShelfManagerImpl implements ShelfManager {
 
-    private final static Logger logger = Logger.getLogger(ShelfManagerImpl.class.getName());
+    public static final Logger logger = LoggerFactory.getLogger(ShelfManager.class);
     private DataSource dataSource;
 
     public void setDataSource(DataSource dataSource) {
@@ -65,7 +65,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -73,14 +73,14 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                        logger.debug("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.log(Level.SEVERE, "Error creating shelf", ex);
+                logger.debug("Error creating shelf", ex);
                 throw new MethodFailureException("Error creating shelf", ex);
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error creating shelf", ex);
+            logger.debug("Error creating shelf", ex);
             throw new MethodFailureException("Error creating shelf", ex);
         }
     }
@@ -112,7 +112,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -120,14 +120,14 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                        logger.debug("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.log(Level.SEVERE, "Error deleting shelf", ex);
+                logger.debug("Error deleting shelf", ex);
                 throw new MethodFailureException("Error deleting shelf", ex);
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error deleting shelf", ex);
+            logger.debug("Error deleting shelf", ex);
             throw new MethodFailureException("Error deleting shelf", ex);
         }
     }
@@ -147,7 +147,7 @@ public class ShelfManagerImpl implements ShelfManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error listing all shelves", ex);
+            logger.debug("Error listing all shelves", ex);
             throw new MethodFailureException("Error listing all shelves", ex);
         }
     }
@@ -170,7 +170,7 @@ public class ShelfManagerImpl implements ShelfManager {
                     throw new SQLException("Error: No such shelf found");
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error finding shelf", ex);
+            logger.debug("Error finding shelf", ex);
             throw new MethodFailureException("Error finding shelf", ex);
         }
     }
@@ -210,7 +210,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.log(Level.SEVERE, "Error rollback database", ex1);
+                    logger.debug("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -218,12 +218,12 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.log(Level.SEVERE, "Error setting autoCommit to true", ex2);
+                        logger.debug("Error setting autoCommit to true", ex2);
                     }
                 }
             }
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error updating shelf", ex);
+            logger.debug("Error updating shelf", ex);
             throw new MethodFailureException("Error updating shelf", ex);
         }
     }

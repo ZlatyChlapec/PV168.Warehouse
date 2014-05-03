@@ -32,6 +32,9 @@
     <orderEntry type="library" name="tomcat" level="project" />
     <orderEntry type="library" name="Spring-4.0.3.RELEASE" level="project" />
     <orderEntry type="library" name="Spring-4.0.3.RELEASE" level="project" />
+    <orderEntry type="library" name="Spring-4.0.3.RELEASE" level="project" />
+    <orderEntry type="library" name="slf4j-simple-1.7.7" level="project" />
+    <orderEntry type="library" name="logback-core-1.1.2" level="project" />
   </component>
 </module>
 
