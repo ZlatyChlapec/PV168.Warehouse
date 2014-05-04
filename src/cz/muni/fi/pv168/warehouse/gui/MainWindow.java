@@ -16,13 +16,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -43,6 +41,7 @@ public class MainWindow extends JFrame {
     private SwingWorkerUpdateShelf swingWorkerUpdateShelf;
 
     public MainWindow() {
+
         try {
             myResources = ResourceBundle.getBundle("lang", Locale.getDefault());
         } catch (MissingResourceException e) {
@@ -57,17 +56,17 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void itemButtonActionPerformed(ActionEvent e) {
+    private void insertItemButtonActionPerformed(ActionEvent e) {
         if (swingWorkerAddItem != null) {
 
             throw new IllegalStateException("Operation is already in progress");
         }
 
-        itemButton.setEnabled(false);
+        insertItemButton.setEnabled(false);
 
         Item item = new Item();
-        item.setWeight(Double.parseDouble(weightTextField.getText()));
-        item.setStoreDays(Integer.parseInt(storeDaysTextField.getText()));
+        item.setWeight(Double.parseDouble(weightSpinner.getValue().toString()));
+        item.setStoreDays(Integer.parseInt(storeDaysSpinner.getValue().toString()));
         item.setDangerous(dangerousCheckBox.isSelected());
 
         swingWorkerAddItem = new SwingWorkerAddItem(item);
@@ -98,26 +97,26 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllItems();
-            weightTextField.setText("");
-            storeDaysTextField.setText("");
+            weightSpinner.setValue(0.01);
+            storeDaysSpinner.setValue(1);
             dangerousCheckBox.setSelected(false);
-            itemButton.setEnabled(true);
+            insertItemButton.setEnabled(true);
             swingWorkerAddItem = null;
         }
     }
 
-    private void shelfButtonActionPerformed(ActionEvent e) {
+    private void insertShelfButtonActionPerformed(ActionEvent e) {
         if (swingWorkerAddShelf != null) {
             throw new IllegalStateException("Operation is already in progress");
         }
 
-        shelfButton.setEnabled(false);
+        insertShelfButton.setEnabled(false);
 
         Shelf shelf = new Shelf();
-        shelf.setColumn(Integer.parseInt(columnTextField.getText()));
-        shelf.setRow(Integer.parseInt(rowTextField.getText()));
-        shelf.setCapacity(Integer.parseInt(capacityTextField.getText()));
-        shelf.setMaxWeight(Double.parseDouble(maxWeightTextField.getText()));
+        shelf.setColumn(Integer.parseInt(columnSpinner.getValue().toString()));
+        shelf.setRow(Integer.parseInt(rowSpinner.getValue().toString()));
+        shelf.setCapacity(Integer.parseInt(capacitySpinner.getValue().toString()));
+        shelf.setMaxWeight(Double.parseDouble(maxWeightSpinner.getValue().toString()));
         shelf.setSecure(secureCheckBox.isSelected());
 
         swingWorkerAddShelf = new SwingWorkerAddShelf(shelf);
@@ -148,11 +147,11 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            shelfButton.setEnabled(true);
-            columnTextField.setText("");
-            rowTextField.setText("");
-            capacityTextField.setText("");
-            maxWeightTextField.setText("");
+            insertShelfButton.setEnabled(true);
+            columnSpinner.setValue(1);
+            rowSpinner.setValue(1);
+            capacitySpinner.setValue(1);
+            maxWeightSpinner.setValue(0.01);
             secureCheckBox.setSelected(false);
             swingWorkerAddShelf = null;
         }
@@ -418,528 +417,500 @@ public class MainWindow extends JFrame {
     }
 
     private void initComponents() throws UnsupportedEncodingException {
+
+        SpinnerNumberModel storeDays = new SpinnerNumberModel(1, 1, 365, 1);
+        SpinnerNumberModel column = new SpinnerNumberModel(1, 1, 365, 1);
+        SpinnerNumberModel row = new SpinnerNumberModel(1, 1, 365, 1);
+        SpinnerNumberModel capacity = new SpinnerNumberModel(1, 1, 365, 1);
+        SpinnerNumberModel weight = new SpinnerNumberModel(0.01, 0.01, 200.00, 0.01);
+        SpinnerNumberModel maxWeight = new SpinnerNumberModel(0.01, 0.01, 800.00, 0.01);
+
         submitItemPanel = new JPanel();
-        weightTextField = new JTextField();
-        panelTitleLabel = new JLabel();
+        itemPanelTitleLable = new JLabel();
         weightLabel = new JLabel();
-        storeDaysTextField = new JTextField();
-        dangerousCheckBox = new JCheckBox();
+        weightSpinner = new JSpinner(weight);
         storeDaysLabel = new JLabel();
+        storeDaysSpinner = new JSpinner(storeDays);
         dangerousLabel = new JLabel();
-        itemButton = new JButton();
+        dangerousCheckBox = new JCheckBox();
+        insertItemButton = new JButton();
         submitShelfPanel = new JPanel();
-        columnTextField = new JTextField();
-        panelTitleLabel2 = new JLabel();
+        shelfPanelTitleLable1 = new JLabel();
         columnLabel = new JLabel();
-        rowTextField = new JTextField();
-        secureCheckBox = new JCheckBox();
+        columnSpinner = new JSpinner(column);
         rowLabel = new JLabel();
-        secureLabel = new JLabel();
+        rowSpinner = new JSpinner(row);
         maxWeightLabel = new JLabel();
-        maxWeightTextField = new JTextField();
-        capacityLabel = new JLabel();
-        capacityTextField = new JTextField();
-        shelfButton = new JButton();
+        maxWeightSpinner = new JSpinner(maxWeight);
+        capacitytLabel = new JLabel();
+        capacitySpinner = new JSpinner(capacity);
+        secureLabel = new JLabel();
+        secureCheckBox = new JCheckBox();
+        insertShelfButton = new JButton();
         printoutPanel = new JPanel();
+        listAllItemsLabel = new JLabel();
         itemsScrollPane = new JScrollPane();
         itemsTable = new JTable();
+        updateItemButton = new JButton();
+        deleteItemButton = new JButton();
+        listAllShelvesLabel = new JLabel();
         shelvesScrollPane = new JScrollPane();
         shelvesTable = new JTable();
-        deleteItemButton = new JButton();
-        deleteShelfButton = new JButton();
-        listAllItemsLabel = new JLabel();
-        listAllShelvesLabel = new JLabel();
-        updateItemButton = new JButton();
         updateShelfButton = new JButton();
-        infoPanel = new JPanel();
-        textOutputLabel = new JLabel();
+        deleteShelfButton = new JButton();
+        logoPanel = new JPanel();
+        logoLabel = new JLabel();
 
-        //======== this ========
         setTitle("Warehouse Manager");
         setResizable(false);
-        Container contentPane = getContentPane();
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        //======== submitItemPanel ========
-        {
+        itemPanelTitleLable.setFont(new java.awt.Font("Century", 1, 18)); // NOI18N
+        itemPanelTitleLable.setHorizontalAlignment(SwingConstants.LEFT);
+        itemPanelTitleLable.setText(printOut("item"));
 
-            //---- panelTitleLabel ----
-            panelTitleLabel.setText(printOut("item"));
-            panelTitleLabel.setFont(new Font("Century", Font.BOLD, 18));
+        weightLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        weightLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        weightLabel.setText(printOut("weight"));
 
-            //---- weightLabel ----
-            weightLabel.setText(printOut("weight"));
-            weightLabel.setFont(new Font("Century", Font.PLAIN, 14));
+        weightSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
 
-            //---- dangerousCheckBox ----
-            dangerousCheckBox.setFont(new Font("Century", Font.PLAIN, 16));
+        storeDaysLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        storeDaysLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        storeDaysLabel.setText(printOut("storeDays"));
 
-            //---- storeDaysLabel ----
-            storeDaysLabel.setText(printOut("storeDays"));
-            storeDaysLabel.setFont(new Font("Century", Font.PLAIN, 14));
+        storeDaysSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
 
-            //---- dangerousLabel ----
-            dangerousLabel.setText(printOut("dangerous"));
-            dangerousLabel.setFont(new Font("Century", Font.PLAIN, 14));
+        dangerousLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        dangerousLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        dangerousLabel.setText(printOut("dangerous"));
 
-            //---- itemButton ----
-            itemButton.setText(printOut("insert"));
-            itemButton.setFont(new Font("Century", Font.PLAIN, 14));
-            itemButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    itemButtonActionPerformed(e);
-                }
-            });
-
-            GroupLayout submitItemPanelLayout = new GroupLayout(submitItemPanel);
-            submitItemPanel.setLayout(submitItemPanelLayout);
-            submitItemPanelLayout.setHorizontalGroup(
-                    submitItemPanelLayout.createParallelGroup()
-                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                    .addGroup(submitItemPanelLayout.createParallelGroup()
-                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                    .addContainerGap()
-                                                    .addComponent(panelTitleLabel))
-                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                    .addGap(14, 14, 14)
-                                                    .addGroup(submitItemPanelLayout.createParallelGroup()
-                                                            .addComponent(weightLabel)
-                                                            .addComponent(weightTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
-                                                    .addGap(30, 30, 30)
-                                                    .addGroup(submitItemPanelLayout.createParallelGroup()
-                                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                                    .addComponent(storeDaysTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
-                                                                    .addGap(40, 40, 40)
-                                                                    .addComponent(dangerousCheckBox)
-                                                                    .addGap(50, 50, 50)
-                                                                    .addComponent(itemButton))
-                                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                                    .addComponent(storeDaysLabel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
-                                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                                    .addComponent(dangerousLabel)))))
-                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            );
-            submitItemPanelLayout.setVerticalGroup(
-                    submitItemPanelLayout.createParallelGroup()
-                            .addGroup(GroupLayout.Alignment.TRAILING, submitItemPanelLayout.createSequentialGroup()
-                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                            .addGroup(submitItemPanelLayout.createSequentialGroup()
-                                                    .addComponent(panelTitleLabel, GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE)
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                                            .addComponent(weightLabel)
-                                                            .addComponent(storeDaysLabel)
-                                                            .addComponent(dangerousLabel))
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                                            .addComponent(weightTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                            .addComponent(storeDaysTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                                    .addGap(4, 4, 4))
-                                            .addComponent(dangerousCheckBox)
-                                            .addComponent(itemButton))
-                                    .addGap(74, 74, 74))
-            );
-        }
-
-        //======== submitShelfPanel ========
-        {
-
-            //---- panelTitleLabel2 ----
-            panelTitleLabel2.setText(printOut("shelf"));
-            panelTitleLabel2.setFont(new Font("Century", Font.BOLD, 18));
-
-            //---- columnLabel ----
-            columnLabel.setText(printOut("column"));
-            columnLabel.setFont(new Font("Century", Font.PLAIN, 14));
-
-            //---- secureCheckBox ----
-            secureCheckBox.setFont(new Font("Century", Font.PLAIN, 16));
-
-            //---- rowLabel ----
-            rowLabel.setText(printOut("row"));
-            rowLabel.setFont(new Font("Century", Font.PLAIN, 14));
-
-            //---- secureLabel ----
-            secureLabel.setText(printOut("secure"));
-            secureLabel.setFont(new Font("Century", Font.PLAIN, 14));
-
-            //---- maxWeightLabel ----
-            maxWeightLabel.setText(printOut("maxWeight"));
-            maxWeightLabel.setFont(new Font("Century", Font.PLAIN, 14));
-
-            //---- capacityLabel ----
-            capacityLabel.setText(printOut("capacity"));
-            capacityLabel.setFont(new Font("Century", Font.PLAIN, 14));
-
-            //---- shelfButton ----
-            shelfButton.setText(printOut("insert"));
-            shelfButton.setFont(new Font("Century", Font.PLAIN, 14));
-            shelfButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    shelfButtonActionPerformed(e);
-                }
-            });
-
-            GroupLayout submitShelfPanelLayout = new GroupLayout(submitShelfPanel);
-            submitShelfPanel.setLayout(submitShelfPanelLayout);
-            submitShelfPanelLayout.setHorizontalGroup(
-                    submitShelfPanelLayout.createParallelGroup()
-                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                    .addGroup(submitShelfPanelLayout.createParallelGroup()
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addContainerGap()
-                                                    .addComponent(panelTitleLabel2))
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addGap(14, 14, 14)
-                                                    .addGroup(submitShelfPanelLayout.createParallelGroup()
-                                                            .addComponent(columnLabel)
-                                                            .addComponent(columnTextField, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE))))
-                                    .addGap(30, 30, 30)
-                                    .addGroup(submitShelfPanelLayout.createParallelGroup()
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addComponent(rowTextField, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(30, 30, 30)
-                                                    .addComponent(maxWeightTextField, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE))
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addComponent(rowLabel, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(118, 118, 118)
-                                                    .addComponent(maxWeightLabel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)))
-                                    .addGap(30, 30, 30)
-                                    .addGroup(submitShelfPanelLayout.createParallelGroup()
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addComponent(capacityLabel, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(85, 85, 85)
-                                                    .addComponent(secureLabel))
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addComponent(capacityTextField, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(30, 30, 30)
-                                                    .addComponent(secureCheckBox)))
-                                    .addGap(35, 35, 35)
-                                    .addComponent(shelfButton)
-                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            );
-            submitShelfPanelLayout.setVerticalGroup(
-                    submitShelfPanelLayout.createParallelGroup()
-                            .addGroup(GroupLayout.Alignment.TRAILING, submitShelfPanelLayout.createSequentialGroup()
-                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                            .addComponent(shelfButton)
-                                            .addGroup(submitShelfPanelLayout.createSequentialGroup()
-                                                    .addComponent(panelTitleLabel2, GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE)
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                                            .addComponent(columnLabel)
-                                                            .addComponent(rowLabel)
-                                                            .addComponent(maxWeightLabel)
-                                                            .addComponent(capacityLabel)
-                                                            .addComponent(secureLabel))
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                                            .addComponent(rowTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                            .addComponent(maxWeightTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                            .addComponent(capacityTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                            .addComponent(columnTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                            .addComponent(secureCheckBox))))
-                                    .addGap(74, 74, 74))
-            );
-        }
-
-        //======== printoutPanel ========
-        {
-
-            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-            //======== itemsScrollPane ========
-            {
-
-                //---- itemsTable ----
-                itemsTable.setFont(new Font("Century", Font.PLAIN, 14));
-                itemsTable.setModel(new DefaultTableModel(
-                        new Object[][]{
-                        },
-                        new String[]{
-                                printOut("id"), printOut("weight"), printOut("expiration"), printOut("dangerous")
-                        }
-                ) {
-                    Class[] types = new Class[]{
-                            Integer.class, Double.class, String.class, Boolean.class
-                    };
-                    boolean[] canEdit = new boolean[]{
-                            false, false, false, false
-                    };
-
-                    public Class getColumnClass(int columnIndex) {
-                        return types[columnIndex];
-                    }
-
-                    public boolean isCellEditable(int rowIndex, int columnIndex) {
-                        return canEdit[columnIndex];
-                    }
-                });
-                itemsTable.getTableHeader().setReorderingAllowed(false);
-                itemsTable.getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                if (itemsTable.getColumnModel().getColumnCount() > 0) {
-                    itemsTable.getColumnModel().getColumn(0).setResizable(false);
-                    itemsTable.getColumnModel().getColumn(1).setResizable(false);
-                    itemsTable.getColumnModel().getColumn(2).setResizable(false);
-                    itemsTable.getColumnModel().getColumn(3).setResizable(false);
-
-                    itemsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-                    itemsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-                    itemsTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-                    itemsTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-                }
-                itemsTable.removeColumn(itemsTable.getColumnModel().getColumn(0));
-                itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
-                listAllItems();
-
-                itemsScrollPane.setViewportView(itemsTable);
+        insertItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        insertItemButton.setText(printOut("insert"));
+        insertItemButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                insertItemButtonActionPerformed(e);
             }
+        });
 
-            //======== shelvesScrollPane ========
-            {
-
-                //---- shelvesTable ----
-                shelvesTable.setFont(new Font("Century", Font.PLAIN, 14));
-                shelvesTable.setModel(new DefaultTableModel(
-                        new Object[][]{
-                        },
-                        new String[]{
-                                printOut("id"), printOut("column"), printOut("row"), printOut("maxWeight"), printOut("capacity"), printOut("secure")
-                        }
-                ) {
-                    Class[] types = new Class[]{
-                            Integer.class, Integer.class, Integer.class, Double.class, Integer.class, Boolean.class
-                    };
-                    boolean[] canEdit = new boolean[]{
-                            false, false, false, false, false, false
-                    };
-
-                    public Class getColumnClass(int columnIndex) {
-                        return types[columnIndex];
-                    }
-
-                    public boolean isCellEditable(int rowIndex, int columnIndex) {
-                        return canEdit[columnIndex];
-                    }
-                });
-                shelvesTable.getTableHeader().setReorderingAllowed(false);
-                shelvesTable.getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                if (shelvesTable.getColumnModel().getColumnCount() > 0) {
-                    shelvesTable.getColumnModel().getColumn(0).setResizable(false);
-                    shelvesTable.getColumnModel().getColumn(1).setResizable(false);
-                    shelvesTable.getColumnModel().getColumn(2).setResizable(false);
-                    shelvesTable.getColumnModel().getColumn(3).setResizable(false);
-                    shelvesTable.getColumnModel().getColumn(4).setResizable(false);
-                    shelvesTable.getColumnModel().getColumn(5).setResizable(false);
-
-                    shelvesTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-                    shelvesTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-                    shelvesTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-                    shelvesTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-                    shelvesTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
-                    shelvesTable.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
-                }
-                shelvesTable.removeColumn(shelvesTable.getColumnModel().getColumn(0));
-                shelvesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);// zabezpečuje výber len jednej položky potom môžme odmazať keď tak
-                listAllShelves();
-
-                shelvesScrollPane.setViewportView(shelvesTable);
-            }
-
-            //---- deleteItemButton ----
-            deleteItemButton.setText(printOut("deleteSelectedItem"));
-            deleteItemButton.setFont(new Font("Century", Font.PLAIN, 14));
-            deleteItemButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    deleteItemButtonActionPerformed(e);
-                }
-            });
-
-            //---- deleteShelfButton ----
-            deleteShelfButton.setText(printOut("deleteSelectedShelf"));
-            deleteShelfButton.setFont(new Font("Century", Font.PLAIN, 14));
-            deleteShelfButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    deleteShelfButtonActionPerformed(e);
-                }
-            });
-
-            //---- listAllItemsLabel ----
-            listAllItemsLabel.setText(printOut("listOfAllItems"));
-            listAllItemsLabel.setFont(new Font("Century", Font.PLAIN, 16));
-
-            //---- listAllShelvesLabel ----
-            listAllShelvesLabel.setText(printOut("listOfAllShelves"));
-            listAllShelvesLabel.setFont(new Font("Century", Font.PLAIN, 16));
-
-            //---- updateItemButton ----
-            updateItemButton.setText(printOut("updateSelectedItem"));
-            updateItemButton.setFont(new Font("Century", Font.PLAIN, 14));
-            updateItemButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updateItemButtonActionPerformed(e);
-                }
-            });
-
-            //---- updateShelfButton ----
-            updateShelfButton.setText(printOut("updateSelectedShelf"));
-            updateShelfButton.setFont(new Font("Century", Font.PLAIN, 14));
-            updateShelfButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updateShelfButtonActionPerformed(e);
-                }
-            });
-
-            GroupLayout printoutPanelLayout = new GroupLayout(printoutPanel);
-            printoutPanel.setLayout(printoutPanelLayout);
-            printoutPanelLayout.setHorizontalGroup(
-                    printoutPanelLayout.createParallelGroup()
-                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                    .addGap(132, 132, 132)
-                                    .addComponent(listAllItemsLabel)
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 326, Short.MAX_VALUE)
-                                    .addComponent(listAllShelvesLabel)
-                                    .addGap(186, 186, 186))
-                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                    .addGap(12, 12, 12)
-                                    .addGroup(printoutPanelLayout.createParallelGroup()
-                                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                                    .addComponent(updateItemButton)
-                                                    .addGap(18, 18, 18)
-                                                    .addComponent(deleteItemButton)
-                                                    .addGap(0, 0, Short.MAX_VALUE))
-                                            .addComponent(itemsScrollPane, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE))
-                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
-                                                    .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 483, GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(20, 20, 20))
-                                            .addGroup(printoutPanelLayout.createSequentialGroup()
-                                                    .addGap(73, 73, 73)
-                                                    .addComponent(updateShelfButton)
-                                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
-                                                    .addComponent(deleteShelfButton)
-                                                    .addGap(60, 60, 60))))
-            );
-            printoutPanelLayout.setVerticalGroup(
-                    printoutPanelLayout.createParallelGroup()
-                            .addGroup(GroupLayout.Alignment.TRAILING, printoutPanelLayout.createSequentialGroup()
-                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                            .addComponent(listAllItemsLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(listAllShelvesLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE))
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                            .addComponent(itemsScrollPane, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
-                                            .addComponent(shelvesScrollPane, GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                            .addComponent(deleteItemButton)
-                                            .addComponent(updateItemButton)
-                                            .addComponent(deleteShelfButton)
-                                            .addComponent(updateShelfButton))
-                                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            );
-        }
-
-        //======== infoPanel ========
-        {
-
-            //---- textOutputLabel ----
-            textOutputLabel.setFont(new Font("Century", Font.PLAIN, 14));
-            textOutputLabel.setText("There is space for same info.");
-
-            GroupLayout infoPanelLayout = new GroupLayout(infoPanel);
-            infoPanel.setLayout(infoPanelLayout);
-            infoPanelLayout.setHorizontalGroup(
-                    infoPanelLayout.createParallelGroup()
-                            .addGroup(infoPanelLayout.createSequentialGroup()
-                                    .addContainerGap()
-                                    .addComponent(textOutputLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addContainerGap())
-            );
-            infoPanelLayout.setVerticalGroup(
-                    infoPanelLayout.createParallelGroup()
-                            .addGroup(infoPanelLayout.createSequentialGroup()
-                                    .addComponent(textOutputLabel, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
-                                    .addGap(0, 67, Short.MAX_VALUE))
-            );
-        }
-
-        GroupLayout contentPaneLayout = new GroupLayout(contentPane);
-        contentPane.setLayout(contentPaneLayout);
-        contentPaneLayout.setHorizontalGroup(
-                contentPaneLayout.createParallelGroup()
-                        .addGroup(contentPaneLayout.createSequentialGroup()
+        GroupLayout submitItemPanelLayout = new GroupLayout(submitItemPanel);
+        submitItemPanel.setLayout(submitItemPanelLayout);
+        submitItemPanelLayout.setHorizontalGroup(
+                submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(submitItemPanelLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(contentPaneLayout.createParallelGroup()
-                                        .addGroup(contentPaneLayout.createSequentialGroup()
-                                                .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(infoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addGap(54, 54, 54))
-                                        .addGroup(contentPaneLayout.createSequentialGroup()
-                                                .addComponent(submitShelfPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addContainerGap(90, Short.MAX_VALUE))
-                                        .addGroup(contentPaneLayout.createSequentialGroup()
-                                                .addComponent(printoutPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(0, 4, Short.MAX_VALUE))))
-        );
-        contentPaneLayout.setVerticalGroup(
-                contentPaneLayout.createParallelGroup()
-                        .addGroup(contentPaneLayout.createSequentialGroup()
-                                .addGroup(contentPaneLayout.createParallelGroup()
-                                        .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(infoPanel, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(submitShelfPanel, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(printoutPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                .addGap(10, 10, 10)
+                                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(weightLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(weightSpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(30, 30, 30)
+                                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                .addComponent(storeDaysSpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(49, 49, 49)
+                                                                .addComponent(dangerousCheckBox)
+                                                                .addGap(47, 47, 47)
+                                                                .addComponent(insertItemButton))
+                                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                .addComponent(storeDaysLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(32, 32, 32)
+                                                                .addComponent(dangerousLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE))))
+                                        .addComponent(itemPanelTitleLable))
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+        submitItemPanelLayout.setVerticalGroup(
+                submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                        .addComponent(insertItemButton)
+                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                .addComponent(itemPanelTitleLable, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(weightLabel)
+                                                        .addComponent(storeDaysLabel)
+                                                        .addComponent(dangerousLabel))
+                                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                .addGap(10, 10, 10)
+                                                                .addComponent(dangerousCheckBox))
+                                                        .addGroup(submitItemPanelLayout.createSequentialGroup()
+                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addGroup(submitItemPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                                        .addComponent(weightSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                                        .addComponent(storeDaysSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        shelfPanelTitleLable1.setFont(new java.awt.Font("Century", 1, 18)); // NOI18N
+        shelfPanelTitleLable1.setHorizontalAlignment(SwingConstants.LEFT);
+        shelfPanelTitleLable1.setText(printOut("shelf"));
+
+        columnLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        columnLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        columnLabel.setText(printOut("column"));
+
+        columnSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+
+        rowLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        rowLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        rowLabel.setText(printOut("row"));
+
+        rowSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+
+        maxWeightLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        maxWeightLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        maxWeightLabel.setText(printOut("maxWeight"));
+
+        maxWeightSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+
+        capacitytLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        capacitytLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        capacitytLabel.setText(printOut("capacity"));
+
+        capacitySpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+
+        secureLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        secureLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        secureLabel.setText(printOut("secure"));
+
+        insertShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        insertShelfButton.setText(printOut("insert"));
+        insertShelfButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                insertShelfButtonActionPerformed(e);
+            }
+        });
+
+        GroupLayout submitShelfPanelLayout = new GroupLayout(submitShelfPanel);
+        submitShelfPanel.setLayout(submitShelfPanelLayout);
+        submitShelfPanelLayout.setHorizontalGroup(
+                submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(shelfPanelTitleLable1)
+                                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                                .addGap(10, 10, 10)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(columnLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(columnSpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(30, 30, 30)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(rowLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(rowSpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(30, 30, 30)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(maxWeightSpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(maxWeightLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(30, 30, 30)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                                                .addComponent(capacitySpinner, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(52, 52, 52)
+                                                                .addComponent(secureCheckBox)
+                                                                .addGap(52, 52, 52)
+                                                                .addComponent(insertShelfButton))
+                                                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                                                .addComponent(capacitytLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(30, 30, 30)
+                                                                .addComponent(secureLabel, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)))))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        submitShelfPanelLayout.setVerticalGroup(
+                submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                        .addComponent(secureCheckBox)
+                                        .addGroup(submitShelfPanelLayout.createSequentialGroup()
+                                                .addComponent(shelfPanelTitleLable1, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(columnLabel)
+                                                        .addComponent(rowLabel)
+                                                        .addComponent(maxWeightLabel)
+                                                        .addComponent(capacitytLabel)
+                                                        .addComponent(secureLabel))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(submitShelfPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(columnSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(rowSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(maxWeightSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(capacitySpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(insertShelfButton))))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        listAllItemsLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        listAllItemsLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        listAllItemsLabel.setText(printOut("listOfAllItems"));
+
+        itemsScrollPane.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+        itemsTable.setModel(new DefaultTableModel(
+                new Object[][]{
+
+                },
+                new String[]{
+                        "id", printOut("weight"), printOut("expiration"), printOut("dangerous")
+                }
+        ) {
+            Class[] types = new Class[]{
+                    Integer.class, Double.class, Object.class, Boolean.class
+            };
+            boolean[] canEdit = new boolean[]{
+                    false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types[columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        itemsTable.setColumnSelectionAllowed(false);
+        itemsTable.getTableHeader().setReorderingAllowed(false);
+        itemsScrollPane.setViewportView(itemsTable);
+        if (itemsTable.getColumnModel().getColumnCount() > 0) {
+            itemsTable.getColumnModel().getColumn(0).setResizable(false);
+            itemsTable.getColumnModel().getColumn(1).setResizable(false);
+            itemsTable.getColumnModel().getColumn(2).setResizable(false);
+            itemsTable.getColumnModel().getColumn(3).setResizable(false);
+
+            itemsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+            itemsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+            itemsTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+            itemsTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        }
+        itemsTable.removeColumn(itemsTable.getColumnModel().getColumn(0));
+        itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listAllItems();
+
+        updateItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        updateItemButton.setText(printOut("updateSelectedItem"));
+        updateItemButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateItemButtonActionPerformed(e);
+            }
+        });
+
+        deleteItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        deleteItemButton.setText(printOut("deleteSelectedItem"));
+        deleteItemButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteItemButtonActionPerformed(e);
+            }
+        });
+
+        listAllShelvesLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        listAllShelvesLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        listAllShelvesLabel.setText(printOut("listOfAllShelves"));
+
+        shelvesTable.setModel(new DefaultTableModel(
+                new Object[][]{
+
+                },
+                new String[]{
+                        "id", printOut("column"), printOut("row"), printOut("maxWeight"), printOut("capacity"), printOut("secure")
+                }
+        ) {
+            Class[] types = new Class[]{
+                    Integer.class, Integer.class, Integer.class, Double.class, Integer.class, Boolean.class
+            };
+            boolean[] canEdit = new boolean[]{
+                    false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types[columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        shelvesTable.setColumnSelectionAllowed(false);
+        shelvesTable.getTableHeader().setReorderingAllowed(false);
+        shelvesScrollPane.setViewportView(shelvesTable);
+        if (shelvesTable.getColumnModel().getColumnCount() > 0) {
+            shelvesTable.getColumnModel().getColumn(0).setResizable(false);
+            shelvesTable.getColumnModel().getColumn(1).setResizable(false);
+            shelvesTable.getColumnModel().getColumn(2).setResizable(false);
+            shelvesTable.getColumnModel().getColumn(3).setResizable(false);
+            shelvesTable.getColumnModel().getColumn(4).setResizable(false);
+            shelvesTable.getColumnModel().getColumn(5).setResizable(false);
+
+            shelvesTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+            shelvesTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+            shelvesTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+            shelvesTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+            shelvesTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+            shelvesTable.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+        }
+        shelvesTable.removeColumn(shelvesTable.getColumnModel().getColumn(0));
+        shelvesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listAllShelves();
+
+        updateShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        updateShelfButton.setText(printOut("updateSelectedShelf"));
+        updateShelfButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateShelfButtonActionPerformed(e);
+            }
+        });
+
+        deleteShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        deleteShelfButton.setText(printOut("deleteSelectedShelf"));
+        deleteShelfButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteShelfButtonActionPerformed(e);
+            }
+        });
+
+        GroupLayout printoutPanelLayout = new GroupLayout(printoutPanel);
+        printoutPanel.setLayout(printoutPanelLayout);
+        printoutPanelLayout.setHorizontalGroup(
+                printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                .addGap(191, 191, 191)
+                                .addComponent(listAllItemsLabel)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(listAllShelvesLabel)
+                                .addGap(209, 209, 209))
+                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                .addComponent(updateItemButton)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(deleteItemButton))
+                                        .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 534, GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 584, GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                .addComponent(updateShelfButton)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(deleteShelfButton)))
+                                .addContainerGap())
+        );
+        printoutPanelLayout.setVerticalGroup(
+                printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(listAllItemsLabel, GroupLayout.Alignment.TRAILING)
+                                        .addComponent(listAllShelvesLabel))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(printoutPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(updateItemButton)
+                                                        .addComponent(deleteItemButton)
+                                                        .addComponent(updateShelfButton)))
+                                        .addGroup(printoutPanelLayout.createSequentialGroup()
+                                                .addComponent(shelvesScrollPane, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(deleteShelfButton)))
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        GroupLayout logoPanelLayout = new GroupLayout(logoPanel);
+        logoPanel.setLayout(logoPanelLayout);
+        logoPanelLayout.setHorizontalGroup(
+                logoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGap(0, 0, Short.MAX_VALUE)
+        );
+        logoPanelLayout.setVerticalGroup(
+                logoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        logoLabel.setFont(new java.awt.Font("Century", 0, 62)); // NOI18N
+        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        logoLabel.setText("PV168.Warehouse");
+
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(printoutPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(submitShelfPanel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                                .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(logoLabel, GroupLayout.PREFERRED_SIZE, 548, GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(logoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(submitItemPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(logoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(logoLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(submitShelfPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(printoutPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         pack();
         setLocationRelativeTo(getOwner());
     }
 
-    private JPanel submitItemPanel;
-    private JTextField weightTextField;
-    private JLabel panelTitleLabel;
-    private JLabel weightLabel;
-    private JTextField storeDaysTextField;
-    private JCheckBox dangerousCheckBox;
-    private JLabel storeDaysLabel;
-    private JLabel dangerousLabel;
-    private JButton itemButton;
-    private JPanel submitShelfPanel;
-    private JTextField columnTextField;
-    private JLabel panelTitleLabel2;
+
+    private JSpinner capacitySpinner;
+    private JLabel capacitytLabel;
     private JLabel columnLabel;
-    private JTextField rowTextField;
-    private JCheckBox secureCheckBox;
-    private JLabel rowLabel;
-    private JLabel secureLabel;
-    private JLabel maxWeightLabel;
-    private JTextField maxWeightTextField;
-    private JLabel capacityLabel;
-    private JTextField capacityTextField;
-    private JButton shelfButton;
-    private JPanel printoutPanel;
-    private JScrollPane itemsScrollPane;
-    private JTable itemsTable;
-    private JScrollPane shelvesScrollPane;
-    private JTable shelvesTable;
+    private JSpinner columnSpinner;
+    private JCheckBox dangerousCheckBox;
+    private JLabel dangerousLabel;
     private JButton deleteItemButton;
     private JButton deleteShelfButton;
+    private JButton insertItemButton;
+    private JButton insertShelfButton;
+    private JLabel itemPanelTitleLable;
+    private JScrollPane itemsScrollPane;
+    private JTable itemsTable;
+    private JLabel logoLabel;
     private JLabel listAllItemsLabel;
     private JLabel listAllShelvesLabel;
+    private JPanel logoPanel;
+    private JLabel maxWeightLabel;
+    private JSpinner maxWeightSpinner;
+    private JPanel printoutPanel;
+    private JLabel rowLabel;
+    private JSpinner rowSpinner;
+    private JCheckBox secureCheckBox;
+    private JLabel secureLabel;
+    private JLabel shelfPanelTitleLable1;
+    private JScrollPane shelvesScrollPane;
+    private JTable shelvesTable;
+    private JLabel storeDaysLabel;
+    private JSpinner storeDaysSpinner;
+    private JPanel submitItemPanel;
+    private JPanel submitShelfPanel;
     private JButton updateItemButton;
     private JButton updateShelfButton;
-    private JPanel infoPanel;
-    private JLabel textOutputLabel;
+    private JLabel weightLabel;
+    private JSpinner weightSpinner;
 }
