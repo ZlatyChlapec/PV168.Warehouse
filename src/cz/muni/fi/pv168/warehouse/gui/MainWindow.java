@@ -16,11 +16,13 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -465,27 +467,27 @@ public class MainWindow extends JFrame {
         setResizable(false);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        itemPanelTitleLable.setFont(new java.awt.Font("Century", 1, 18)); // NOI18N
+        itemPanelTitleLable.setFont(new java.awt.Font("Century", Font.BOLD, 18));
         itemPanelTitleLable.setHorizontalAlignment(SwingConstants.LEFT);
         itemPanelTitleLable.setText(printOut("item"));
 
-        weightLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        weightLabel.setFont(new java.awt.Font("Century", 0, 14));
         weightLabel.setHorizontalAlignment(SwingConstants.LEFT);
         weightLabel.setText(printOut("weight"));
 
-        weightSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        weightSpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        storeDaysLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        storeDaysLabel.setFont(new java.awt.Font("Century", 0, 14));
         storeDaysLabel.setHorizontalAlignment(SwingConstants.LEFT);
         storeDaysLabel.setText(printOut("storeDays"));
 
-        storeDaysSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        storeDaysSpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        dangerousLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        dangerousLabel.setFont(new java.awt.Font("Century", 0, 14));
         dangerousLabel.setHorizontalAlignment(SwingConstants.LEFT);
         dangerousLabel.setText(printOut("dangerous"));
 
-        insertItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        insertItemButton.setFont(new java.awt.Font("Century", 0, 14));
         insertItemButton.setText(printOut("insert"));
         insertItemButton.addActionListener(new ActionListener() {
             @Override
@@ -546,39 +548,39 @@ public class MainWindow extends JFrame {
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        shelfPanelTitleLable1.setFont(new java.awt.Font("Century", 1, 18)); // NOI18N
+        shelfPanelTitleLable1.setFont(new java.awt.Font("Century", Font.BOLD, 18));
         shelfPanelTitleLable1.setHorizontalAlignment(SwingConstants.LEFT);
         shelfPanelTitleLable1.setText(printOut("shelf"));
 
-        columnLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        columnLabel.setFont(new java.awt.Font("Century", 0, 14));
         columnLabel.setHorizontalAlignment(SwingConstants.LEFT);
         columnLabel.setText(printOut("column"));
 
-        columnSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        columnSpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        rowLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        rowLabel.setFont(new java.awt.Font("Century", 0, 14));
         rowLabel.setHorizontalAlignment(SwingConstants.LEFT);
         rowLabel.setText(printOut("row"));
 
-        rowSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        rowSpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        maxWeightLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        maxWeightLabel.setFont(new java.awt.Font("Century", 0, 14));
         maxWeightLabel.setHorizontalAlignment(SwingConstants.LEFT);
         maxWeightLabel.setText(printOut("maxWeight"));
 
-        maxWeightSpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        maxWeightSpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        capacitytLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        capacitytLabel.setFont(new java.awt.Font("Century", 0, 14));
         capacitytLabel.setHorizontalAlignment(SwingConstants.LEFT);
         capacitytLabel.setText(printOut("capacity"));
 
-        capacitySpinner.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        capacitySpinner.setFont(new java.awt.Font("Century", 0, 14));
 
-        secureLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        secureLabel.setFont(new java.awt.Font("Century", 0, 14));
         secureLabel.setHorizontalAlignment(SwingConstants.LEFT);
         secureLabel.setText(printOut("secure"));
 
-        insertShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        insertShelfButton.setFont(new java.awt.Font("Century", 0, 14));
         insertShelfButton.setText(printOut("insert"));
         insertShelfButton.addActionListener(new ActionListener() {
             @Override
@@ -646,11 +648,11 @@ public class MainWindow extends JFrame {
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        listAllItemsLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        listAllItemsLabel.setFont(new java.awt.Font("Century", 0, 14));
         listAllItemsLabel.setHorizontalAlignment(SwingConstants.CENTER);
         listAllItemsLabel.setText(printOut("listOfAllItems"));
 
-        itemsScrollPane.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        itemsScrollPane.setFont(new java.awt.Font("Century", 0, 14));
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
@@ -696,7 +698,7 @@ public class MainWindow extends JFrame {
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listAllItems();
 
-        updateItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        updateItemButton.setFont(new java.awt.Font("Century", 0, 14));
         updateItemButton.setText(printOut("updateSelectedItem"));
         updateItemButton.addActionListener(new ActionListener() {
             @Override
@@ -705,7 +707,7 @@ public class MainWindow extends JFrame {
             }
         });
 
-        deleteItemButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        deleteItemButton.setFont(new java.awt.Font("Century", 0, 14));
         deleteItemButton.setText(printOut("deleteSelectedItem"));
         deleteItemButton.addActionListener(new ActionListener() {
             @Override
@@ -714,7 +716,7 @@ public class MainWindow extends JFrame {
             }
         });
 
-        listAllShelvesLabel.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        listAllShelvesLabel.setFont(new java.awt.Font("Century", 0, 14));
         listAllShelvesLabel.setHorizontalAlignment(SwingConstants.CENTER);
         listAllShelvesLabel.setText(printOut("listOfAllShelves"));
 
@@ -763,7 +765,7 @@ public class MainWindow extends JFrame {
         shelvesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listAllShelves();
 
-        updateShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        updateShelfButton.setFont(new java.awt.Font("Century", 0, 14));
         updateShelfButton.setText(printOut("updateSelectedShelf"));
         updateShelfButton.addActionListener(new ActionListener() {
             @Override
@@ -772,7 +774,7 @@ public class MainWindow extends JFrame {
             }
         });
 
-        deleteShelfButton.setFont(new java.awt.Font("Century", 0, 14)); // NOI18N
+        deleteShelfButton.setFont(new java.awt.Font("Century", 0, 14));
         deleteShelfButton.setText(printOut("deleteSelectedShelf"));
         deleteShelfButton.addActionListener(new ActionListener() {
             @Override
@@ -841,7 +843,7 @@ public class MainWindow extends JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)
         );
 
-        logoLabel.setFont(new java.awt.Font("Century", 0, 62)); // NOI18N
+        logoLabel.setFont(new java.awt.Font("Century", 0, 62));
         logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         logoLabel.setText("PV168.Warehouse");
 
