@@ -244,7 +244,7 @@ public class MainWindow extends JFrame {
                 if (result == 0) {
                     shelf = shelfManager.findShelfById(id);
                     shelfManager.deleteShelf(shelf);
-                    JOptionPane.showMessageDialog(printoutPanel, printOut("deleteItemSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(printoutPanel, printOut("deleteShelfSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (MethodFailureException ex) {
                 JOptionPane.showMessageDialog(printoutPanel, printOut("deleteError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
