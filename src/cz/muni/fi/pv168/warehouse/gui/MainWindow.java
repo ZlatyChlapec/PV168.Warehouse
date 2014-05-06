@@ -15,7 +15,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -362,8 +361,6 @@ public class MainWindow extends JFrame {
         if (swingWorkerUpdateShelf != null) {
             throw new IllegalStateException("Operation is already in progress");
         }
-
-
     }
 
     class SwingWorkerUpdateShelf extends SwingWorker<Shelf, Void> {
@@ -375,12 +372,7 @@ public class MainWindow extends JFrame {
     }
 
     private String printOut(String value) {
-        try {
-            return new String(myResources.getString(value).getBytes("ISO-8859-1"), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return "Unsupported encoding.";
-        }
+            return myResources.getString(value);
     }
 
     private String getExpirationTime(Date insertionDate, int storeDays) {
