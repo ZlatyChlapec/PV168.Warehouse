@@ -1,6 +1,1 @@
-delte expire items
-put selected
-update item
-update shelf
-logovanie
-column a row nemozu byt rovnake
+TODO loger, dve tlačítka hore, nech sa nedá vymazať shelf pokiaľ v ňom niečo je, double na dve miesta, update by mohol prednastaviť predchádzajúce hodnoty, nech sa nedá updatnúť ak by to prekročilo shelf weight, keď sa spraví insert a nepodarí sa nech sa uložia predchádzajúce hodnoty

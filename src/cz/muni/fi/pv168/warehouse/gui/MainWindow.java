@@ -89,6 +89,7 @@ public class MainWindow extends JFrame {
     class SwingWorkerAddItem extends SwingWorker<Item, Void> {
         private ItemManager itemManager;
         private Item item;
+        private boolean inserted = false;
 
         public SwingWorkerAddItem(Item item) {
             this.item = item;
@@ -107,9 +108,11 @@ public class MainWindow extends JFrame {
                     if (shelf.isSecure() == item.isDangerous() && shelf.getMaxWeight() >= totalWeight + item.getWeight()) {
                         itemManager.createItem(item);
                         warehouseManager.putItemOnShelf(shelf, item);
-                    } else {
-                        itemManager.createItem(item);
+                        inserted = true;
                     }
+                }
+                if (!inserted) {
+                    itemManager.createItem(item);
                 }
                 return item;
             } catch (MethodFailureException ex) {
@@ -123,9 +126,11 @@ public class MainWindow extends JFrame {
             listAllItems();
             try {
                 get();
+                if (!inserted) {
+                    JOptionPane.showMessageDialog(window, printOut("noSuitableShelf"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("Interrupted Exception", e);
-                JOptionPane.showMessageDialog(window, printOut("noSuitableShelf"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
             }
 
             weightSpinner.setValue(0.01);
@@ -167,6 +172,7 @@ public class MainWindow extends JFrame {
     class SwingWorkerAddShelf extends SwingWorker<Shelf, Void> {
         private ShelfManager shelfManager;
         private Shelf shelf;
+        private boolean duplicit = false;
 
         public SwingWorkerAddShelf(Shelf shelf) {
             this.shelf = shelf;
@@ -177,7 +183,6 @@ public class MainWindow extends JFrame {
             ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
-                boolean duplicit = false;
                 for (Shelf s : shelfManager.listAllShelves()) {
                     if (s.getColumn() == shelf.getColumn() && s.getRow() == shelf.getRow()) {
                         duplicit = true;
@@ -198,14 +203,13 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            Shelf temp = new Shelf();
             try {
-                temp = get();
+                get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(),e);
             }
 
-            if (temp == null) {
+            if (duplicit) {
                 JOptionPane.showMessageDialog(window, printOut("duplicateShelfCoords"), printOut("error"), JOptionPane.ERROR_MESSAGE);
             }
 
@@ -592,7 +596,7 @@ public class MainWindow extends JFrame {
     }
 
     private void selectShelfAllItems(MouseEvent e) {
-        JOptionPane.showMessageDialog(this, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+
     }
 
     //need control
@@ -626,8 +630,8 @@ public class MainWindow extends JFrame {
     private void initComponents() {
 
         SpinnerNumberModel storeDays = new SpinnerNumberModel(1, 1, 365, 1);
-        SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 0);
-        SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 0);
+        SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 1);
+        SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 1);
         SpinnerNumberModel capacity = new SpinnerNumberModel(1, 1, 100, 1);
         SpinnerNumberModel weight = new SpinnerNumberModel(0.01, 0.01, 500.00, 0.05);
         SpinnerNumberModel maxWeight = new SpinnerNumberModel(0.01, 0.01, 1000.00, 0.05);
@@ -1384,8 +1388,8 @@ public class MainWindow extends JFrame {
 
         private void initComponents() {
 
-            SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 0);
-            SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 0);
+            SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 1);
+            SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 1);
             SpinnerNumberModel capacity = new SpinnerNumberModel(1, 1, 100, 1);
             SpinnerNumberModel maxWeight = new SpinnerNumberModel(0.01, 0.01, 1000.00, 0.05);
 
