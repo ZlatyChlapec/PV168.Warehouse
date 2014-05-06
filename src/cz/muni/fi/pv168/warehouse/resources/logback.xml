@@ -1,0 +1,16 @@
+<configuration>
+    <contextName>pv168.Warehouse</contextName>
+ 
+	<appender name="APP" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+    <logger name="cz.muni.fi.pv168.warehouse" level="error"/>
+ 
+    <root level="error">
+        <appender-ref ref="APP"/>
+    </root>
+ 
+</configuration>
