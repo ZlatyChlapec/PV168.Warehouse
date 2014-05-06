@@ -196,6 +196,8 @@ public class WarehouseManagerImpl implements WarehouseManager {
     @Override
     public List<Item> removeAllExpiredItems(Date currentDate) throws MethodFailureException {
         checkDataSource();
+        ItemManagerImpl itemManager = new ItemManagerImpl();
+        itemManager.setDataSource(dataSource);
 
         try (Connection con = dataSource.getConnection()) {
             try (PreparedStatement query = con.prepareStatement("SELECT id, weight, insertiondate, storedays, " +
@@ -207,9 +209,9 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         Calendar cal = Calendar.getInstance();
                         cal.setTime(temp.getInsertionDate());
                         cal.add(Calendar.DATE, temp.getStoreDays());
-                        if (cal.getTime().compareTo(currentDate) > 0) {
+                        if (cal.getTime().compareTo(currentDate) < 0) {
                             list.add(temp);
-                            withdrawItemFromShelf(temp);
+                            itemManager.deleteItem(temp);
                         }
                     }
                     return list;

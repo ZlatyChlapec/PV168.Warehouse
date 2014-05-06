@@ -617,7 +617,99 @@ public class MainWindow extends JFrame {
         updateShelfFrame.dispose();
     }
 
-    private void deleteExpiretItesmButtonActionPerformed(ActionEvent e) {
+    private void deleteExpiredItesmButtonActionPerformed(ActionEvent e) {
+        SwingWorkerDeleteExpiredItems swingWorker = new SwingWorkerDeleteExpiredItems();
+        swingWorker.execute();
+        deleteExpiredItesmButton.setEnabled(false);
+    }
+
+    class SwingWorkerDeleteExpiredItems extends SwingWorker<List<Item>, Void> {
+
+        @Override
+        protected List<Item> doInBackground() throws Exception {
+            try {
+                return warehouseManager.removeAllExpiredItems(new Date());
+            } catch (MethodFailureException e) {
+                logger.error(e.getMessage(), e);
+                throw new ExecutionException(e);
+            }
+        }
+
+        @Override
+        protected void done() {
+            //TODO list with all deleted items
+            listAllItems();
+            try {
+                get();
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(e.getMessage(), e);
+                JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+            }
+            deleteExpiredItesmButton.setEnabled(true);
+        }
+
+    }
+
+    private void putItemWithShelfButtonActionPerformed(ActionEvent e) {
+        int itemId = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
+        int shelfId = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+        SwingWorkerPutItemWithShelf swingWorker = new SwingWorkerPutItemWithShelf(itemId, shelfId);
+        swingWorker.execute();
+        putItemWithShelfButton.setEnabled(false);
+    }
+
+    class SwingWorkerPutItemWithShelf extends SwingWorker<Void, Void> {
+        private boolean already = false;
+        private boolean full = true;
+        private int itemId;
+        private int shelfId;
+
+        public SwingWorkerPutItemWithShelf(int itemId, int shelfId) {
+            this.itemId = itemId;
+            this.shelfId = shelfId;
+        }
+
+        @Override
+        protected Void doInBackground() throws Exception {
+            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
+            ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
+            ItemManager itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
+            try {
+                Item item = itemManager.findItemById(itemId);
+                Shelf shelf = shelfManager.findShelfById(shelfId);
+                System.out.println(warehouseManager.listAllItemsOnShelf(shelf).size()+";"+shelf.getCapacity());
+                if (warehouseManager.findShelfWithItem(item) != null) {
+                    if (warehouseManager.findShelfWithItem(item).equals(shelf)) {
+                        already = true;
+                    }
+                } else if (warehouseManager.listAllItemsOnShelf(shelf).size() < shelf.getCapacity()) {
+                    full = false;
+                } else if(!full && !already) {
+                    warehouseManager.putItemOnShelf(shelf, item);
+                }
+            } catch (MethodFailureException e) {
+                logger.error(e.getMessage(), e);
+            }
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            listAllItems();
+            try {
+                get();
+                if (already) {
+                    JOptionPane.showMessageDialog(window, printOut("alreadyOnShelf"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+                if (full && !already) {
+                    JOptionPane.showMessageDialog(window, printOut("shelfAlreadyFull"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(e.getMessage(), e);
+                JOptionPane.showMessageDialog(window, printOut("insertingItemIntoShelfError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+            }
+            putItemWithShelfButton.setEnabled(true);
+        }
 
     }
 
@@ -641,7 +733,7 @@ public class MainWindow extends JFrame {
             for (Item i : list) {
                 data.append("<tr>");
                     data.append("<td>"+ i.getWeight() +"</td>");
-                    data.append("<td>"+ getExpirationTime(i.getInsertionDate(), i.getStoreDays()) +"</td>");
+                    data.append("<td>" + getExpirationTime(i.getInsertionDate(), i.getStoreDays()) + "</td>");
                     data.append("<td>"+ i.isDangerous() +"</td>");
                 data.append("</tr>");
                 count++;
@@ -656,7 +748,7 @@ public class MainWindow extends JFrame {
     //need control
     class ColumnHeaderToolTips extends MouseMotionAdapter {
         TableColumn curCol;
-        Map tips = new HashMap();
+        Map<TableColumn, String> tips = new HashMap<>();
         public void setToolTip(TableColumn col, String tooltip) {
             if (tooltip == null) {
                 tips.remove(col);
@@ -674,7 +766,7 @@ public class MainWindow extends JFrame {
                 col = colModel.getColumn(vColIndex);
             }
             if (col != curCol) {
-                header.setToolTipText((String) tips.get(col));
+                header.setToolTipText(tips.get(col));
                 curCol = col;
             }
         }
@@ -724,8 +816,7 @@ public class MainWindow extends JFrame {
         updateShelfButton = new JButton();
         deleteShelfButton = new JButton();
         logoPanel = new JPanel();
-        logoLabel = new JLabel();
-        deleteExpiretItesmButton = new JButton();
+        deleteExpiredItesmButton = new JButton();
         putItemWithShelfButton = new JButton();
 
         setTitle("Warehouse Manager");
@@ -1153,17 +1244,23 @@ public class MainWindow extends JFrame {
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        deleteExpiretItesmButton.setFont(new Font("Century", 0, 14));
-        deleteExpiretItesmButton.setText(printOut("deleteExipredItems"));
-        deleteExpiretItesmButton.addActionListener(new ActionListener() {
+        deleteExpiredItesmButton.setFont(new Font("Century", 0, 14));
+        deleteExpiredItesmButton.setText(printOut("deleteExipredItems"));
+        deleteExpiredItesmButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                deleteExpiretItesmButtonActionPerformed(e);
+                deleteExpiredItesmButtonActionPerformed(e);
             }
         });
 
-        putItemWithShelfButton.setFont(new Font("Century", 0, 14)); // NOI18N
+        putItemWithShelfButton.setFont(new Font("Century", 0, 14));
         putItemWithShelfButton.setText(printOut("putItemOnShelf"));
+        putItemWithShelfButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                putItemWithShelfButtonActionPerformed(e);
+            }
+        });
 
         GroupLayout logoPanelLayout = new GroupLayout(logoPanel);
         logoPanel.setLayout(logoPanelLayout);
@@ -1173,14 +1270,14 @@ public class MainWindow extends JFrame {
                                 .addGap(26, 26, 26)
                                 .addGroup(logoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                         .addComponent(putItemWithShelfButton)
-                                        .addComponent(deleteExpiretItesmButton))
+                                        .addComponent(deleteExpiredItesmButton))
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         logoPanelLayout.setVerticalGroup(
                 logoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(GroupLayout.Alignment.TRAILING, logoPanelLayout.createSequentialGroup()
                                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(deleteExpiretItesmButton)
+                                .addComponent(deleteExpiredItesmButton)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(putItemWithShelfButton)
                                 .addContainerGap())
@@ -1227,7 +1324,6 @@ public class MainWindow extends JFrame {
     private JLabel itemPanelTitleLable;
     private JScrollPane itemsScrollPane;
     private JTable itemsTable;
-    private JLabel logoLabel;
     private JLabel listAllItemsLabel;
     private JLabel listAllShelvesLabel;
     private JPanel logoPanel;
@@ -1249,7 +1345,7 @@ public class MainWindow extends JFrame {
     private JButton updateShelfButton;
     private JLabel weightLabel;
     private JSpinner weightSpinner;
-    private JButton deleteExpiretItesmButton;
+    private JButton deleteExpiredItesmButton;
     private JButton putItemWithShelfButton;
 
     class InsertItemFrame extends JFrame {
