@@ -76,13 +76,13 @@ public class MainWindow extends JFrame {
         if (Math.abs(item.getWeight() - 0.01) <= 0.01 && item.getStoreDays() == 1 && !item.isDangerous()) {
             int result = JOptionPane.showConfirmDialog(this, printOut("insertDefualtItem"), printOut("warning"), JOptionPane.YES_NO_OPTION);
             if (result == 0) {
-                swingWorkerAddItem = new SwingWorkerAddItem(item, this);
+                swingWorkerAddItem = new SwingWorkerAddItem(item);
                 swingWorkerAddItem.execute();
             } else {
                 insertItemButton.setEnabled(true);
             }
         } else {
-            swingWorkerAddItem = new SwingWorkerAddItem(item, this);
+            swingWorkerAddItem = new SwingWorkerAddItem(item);
             swingWorkerAddItem.execute();
         }
     }
@@ -91,7 +91,7 @@ public class MainWindow extends JFrame {
         private ItemManager itemManager;
         private Item item;
 
-        public SwingWorkerAddItem(Item item, MainWindow window) {
+        public SwingWorkerAddItem(Item item) {
             this.item = item;
         }
 
@@ -178,7 +178,17 @@ public class MainWindow extends JFrame {
             ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
-                shelfManager.createShelf(shelf);
+                boolean duplicit = false;
+                for (Shelf s : shelfManager.listAllShelves()) {
+                    if (s.getColumn() == shelf.getColumn() && s.getRow() == shelf.getRow()) {
+                        duplicit = true;
+                    }
+                }
+                if (!duplicit) {
+                    shelfManager.createShelf(shelf);
+                } else {
+                    shelf = null;
+                }
             } catch (MethodFailureException ex) {
                 logger.error(ex.getMessage(), ex);
                 throw new ExecutionException(ex);
@@ -189,15 +199,20 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
+            Shelf temp = new Shelf();
             try {
-                get();
+                temp = get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(),e);
             }
 
+            if (temp == null) {
+                JOptionPane.showMessageDialog(window, printOut("duplicateShelfCoords"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+            }
+
             insertShelfButton.setEnabled(true);
-            columnSpinner.setValue(1);
-            rowSpinner.setValue(1);
+            columnSpinner.setValue(0);
+            rowSpinner.setValue(0);
             capacitySpinner.setValue(1);
             maxWeightSpinner.setValue(0.01);
             secureCheckBox.setSelected(false);
@@ -612,8 +627,8 @@ public class MainWindow extends JFrame {
     private void initComponents() {
 
         SpinnerNumberModel storeDays = new SpinnerNumberModel(1, 1, 365, 1);
-        SpinnerNumberModel column = new SpinnerNumberModel(1, 1, 50, 1);
-        SpinnerNumberModel row = new SpinnerNumberModel(1, 1, 50, 1);
+        SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 0);
+        SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 0);
         SpinnerNumberModel capacity = new SpinnerNumberModel(1, 1, 100, 1);
         SpinnerNumberModel weight = new SpinnerNumberModel(0.01, 0.01, 500.00, 0.05);
         SpinnerNumberModel maxWeight = new SpinnerNumberModel(0.01, 0.01, 1000.00, 0.05);
@@ -1370,8 +1385,8 @@ public class MainWindow extends JFrame {
 
         private void initComponents() {
 
-            SpinnerNumberModel column = new SpinnerNumberModel(1, 1, 50, 1);
-            SpinnerNumberModel row = new SpinnerNumberModel(1, 1, 50, 1);
+            SpinnerNumberModel column = new SpinnerNumberModel(0, 0, 50, 0);
+            SpinnerNumberModel row = new SpinnerNumberModel(0, 0, 50, 0);
             SpinnerNumberModel capacity = new SpinnerNumberModel(1, 1, 100, 1);
             SpinnerNumberModel maxWeight = new SpinnerNumberModel(0.01, 0.01, 1000.00, 0.05);
 
