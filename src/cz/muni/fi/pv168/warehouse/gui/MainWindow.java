@@ -123,6 +123,7 @@ public class MainWindow extends JFrame {
 
         @Override
         protected void done() {
+            listAllShelves();
             listAllItems();
             try {
                 get();
@@ -203,6 +204,7 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
+            listAllItems();
             try {
                 get();
             } catch (InterruptedException | ExecutionException e) {
@@ -268,6 +270,7 @@ public class MainWindow extends JFrame {
 
         @Override
         protected void done() {
+            listAllShelves();
             listAllItems();
             try {
                 get();
@@ -327,6 +330,7 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
+            listAllItems();
             try {
                 get();
                 JOptionPane.showMessageDialog(window, printOut("deleteShelfSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
@@ -500,7 +504,22 @@ public class MainWindow extends JFrame {
             itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
 
             try {
-                itemManager.updateItem(item);
+                Shelf shelf = warehouseManager.findShelfWithItem(item);
+                double maxWeight=0;
+                for(Item i : itemManager.listAllItems()) {
+                    Shelf s = warehouseManager.findShelfWithItem(i);
+                    if (s != null && s.equals(shelf)) {
+                        maxWeight += i.getWeight();
+                    }
+                }
+                maxWeight -= itemManager.findItemById(item.getId()).getWeight();
+                maxWeight += item.getWeight();
+
+                if (shelf.getMaxWeight() >= maxWeight) {
+                    itemManager.updateItem(item);
+                } else {
+                    return null;
+                }
             } catch (MethodFailureException e) {
                 logger.error(e.getMessage(), e);
                 throw new ExecutionException(e);
@@ -510,10 +529,14 @@ public class MainWindow extends JFrame {
 
         @Override
         protected void done() {
+            listAllShelves();
             listAllItems();
             try {
                 get();
-                JOptionPane.showMessageDialog(window, printOut("updateItemSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
+                if (get() != null) {
+                    JOptionPane.showMessageDialog(window, printOut("updateItemSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
+                }
+                JOptionPane.showMessageDialog(window, printOut("weightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
@@ -562,6 +585,8 @@ public class MainWindow extends JFrame {
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
 
             try {
+
+
                 shelfManager.updateShelf(shelf);
             } catch (MethodFailureException e) {
                 logger.error(e.getMessage(), e);
@@ -573,6 +598,7 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
+            listAllItems();
             try {
                 get();
                 JOptionPane.showMessageDialog(window, printOut("updateShelfSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
