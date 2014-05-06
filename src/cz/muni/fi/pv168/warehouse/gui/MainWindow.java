@@ -11,8 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.SimpleDateFormat;
@@ -392,13 +391,26 @@ public class MainWindow extends JFrame {
         worker.execute();
 
         try {
-            for (Item i : worker.get()) {
+            Map<Item, Shelf> map = worker.get();
+            for (Item i : map.keySet()) {
                 Date insertionDate = i.getInsertionDate();
                 int storeDays = i.getStoreDays();
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(insertionDate);
                 cal.add(Calendar.DATE, storeDays);
-                model.addRow(new Object[]{i.getId(), i.getWeight(), getExpirationTime(insertionDate, storeDays), i.isDangerous(), cal.getTime().before(new Date())});
+
+                Shelf shelf = map.get(i);
+                StringBuilder coords = new StringBuilder("");
+                if (shelf != null) {
+                    coords.append(shelf.getColumn());
+                    coords.append(" & ");
+                    coords.append(shelf.getRow());
+                } else {
+                    coords.append("");
+                }
+
+                model.addRow(new Object[]{i.getId(), i.getWeight(), getExpirationTime(insertionDate, storeDays),
+                        i.isDangerous(), cal.getTime().before(new Date()), coords.toString()});
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -425,21 +437,25 @@ public class MainWindow extends JFrame {
         }
     }
 
-    class SwingWorkerListAllItems extends SwingWorker<List<Item>, Void> {
+    class SwingWorkerListAllItems extends SwingWorker<Map<Item, Shelf>, Void> {
 
         private ItemManager itemManager;
 
         @Override
-        protected List<Item> doInBackground() throws Exception {
-            List<Item> list = new ArrayList<>();
+        protected Map<Item, Shelf> doInBackground() throws Exception {
+            Map<Item, Shelf> list = new HashMap<>();
             ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
             itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
-                list.addAll(itemManager.listAllItems());
+                for (Item i : itemManager.listAllItems()) {
+
+                    list.put(i, warehouseManager.findShelfWithItem(i));
+                }
+                return list;
             } catch (MethodFailureException e) {
                 e.printStackTrace();
+                throw new ExecutionException(e);
             }
-            return list;
         }
     }
 
@@ -480,34 +496,37 @@ public class MainWindow extends JFrame {
 
     }
 
-    private void selectItemShelf(MouseEvent e) {
-        JOptionPane.showMessageDialog(this, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
-    }
-
-    class SwingWorkerFindItemShelf extends SwingWorker<Shelf, Void> {
-        private ItemManagerImpl itemManager;
-        private int id;
-
-        public SwingWorkerFindItemShelf(int id) {
-            this.id = id;
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
-        }
-
-        @Override
-        protected Shelf doInBackground() throws Exception {
-            try {
-                return warehouseManager.findShelfWithItem(itemManager.findItemById(id));
-            } catch (MethodFailureException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
     private void selectShelfAllItems(MouseEvent e) {
         JOptionPane.showMessageDialog(this, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
     }
+
+    //need control
+    class ColumnHeaderToolTips extends MouseMotionAdapter {
+        TableColumn curCol;
+        Map tips = new HashMap();
+        public void setToolTip(TableColumn col, String tooltip) {
+            if (tooltip == null) {
+                tips.remove(col);
+            } else {
+                tips.put(col, tooltip);
+            }
+        }
+        public void mouseMoved(MouseEvent evt) {
+            JTableHeader header = (JTableHeader) evt.getSource();
+            JTable table = header.getTable();
+            TableColumnModel colModel = table.getColumnModel();
+            int vColIndex = colModel.getColumnIndexAtX(evt.getX());
+            TableColumn col = null;
+            if (vColIndex >= 0) {
+                col = colModel.getColumn(vColIndex);
+            }
+            if (col != curCol) {
+                header.setToolTipText((String) tips.get(col));
+                curCol = col;
+            }
+        }
+    }
+    //need control
 
     private void initComponents() {
 
@@ -768,14 +787,14 @@ public class MainWindow extends JFrame {
 
                 },
                 new String[]{
-                        "id", printOut("weight"), printOut("expiration"), printOut("dangerous"), printOut("expired")
+                        "id", printOut("weight"), printOut("expiration"), printOut("dangerous"), printOut("expired"), printOut("coords")
                 }
         ) {
             Class[] types = new Class[]{
-                    Integer.class, Double.class, Object.class, Boolean.class, Boolean.class
+                    Integer.class, Double.class, Object.class, Boolean.class, Boolean.class, String.class
             };
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false
+                    false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -795,36 +814,24 @@ public class MainWindow extends JFrame {
             itemsTable.getColumnModel().getColumn(2).setResizable(false);
             itemsTable.getColumnModel().getColumn(3).setResizable(false);
             itemsTable.getColumnModel().getColumn(4).setResizable(false);
+            itemsTable.getColumnModel().getColumn(5).setResizable(false);
 
             itemsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
             itemsTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+            itemsTable.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
         }
         itemsTable.removeColumn(itemsTable.getColumnModel().getColumn(0));
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        itemsTable.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    selectItemShelf(e);
-                }
-            }
+        //need control
+        JTableHeader itemsHeader = itemsTable.getTableHeader();
 
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-        });
+        ColumnHeaderToolTips itemsTips = new ColumnHeaderToolTips();
+        for (int c = 0; c < itemsTable.getColumnCount(); c++) {
+            TableColumn col = itemsTable.getColumnModel().getColumn(c);
+            itemsTips.setToolTip(col, (String)col.getHeaderValue());
+        }
+        itemsHeader.addMouseMotionListener(itemsTips);
+        //need control
         listAllItems();
 
         updateItemButton.setFont(new Font("Century", 0, 14));
@@ -914,6 +921,16 @@ public class MainWindow extends JFrame {
             public void mouseExited(MouseEvent e) {
             }
         });
+        //need control
+        JTableHeader shelvesHeader = shelvesTable.getTableHeader();
+
+        ColumnHeaderToolTips shelvesTips = new ColumnHeaderToolTips();
+        for (int c = 0; c < shelvesTable.getColumnCount(); c++) {
+            TableColumn col = shelvesTable.getColumnModel().getColumn(c);
+            shelvesTips.setToolTip(col, (String)col.getHeaderValue());
+        }
+        shelvesHeader.addMouseMotionListener(shelvesTips);
+        //need control
         listAllShelves();
 
         updateShelfButton.setFont(new Font("Century", 0, 14));
