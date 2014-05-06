@@ -31,7 +31,7 @@ public class SpringConfig {
         BasicDataSource bds = new BasicDataSource();
         Properties prop = new Properties();
 
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("config.properties")) {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("cz/muni/fi/pv168/warehouse/resources/config.properties")) {
             prop.load(is);
         } catch (IOException e) {
             e.printStackTrace();
