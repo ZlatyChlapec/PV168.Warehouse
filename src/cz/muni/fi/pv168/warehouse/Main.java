@@ -2,7 +2,7 @@ package cz.muni.fi.pv168.warehouse;
 
 import cz.muni.fi.pv168.warehouse.gui.MainWindow;
 
-import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author Slapy
@@ -11,7 +11,7 @@ import javax.swing.*;
 public class Main {
 
     public static void main(String...args) {
-        SwingUtilities.invokeLater(new Runnable() {
+        EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
                 MainWindow frame = new MainWindow();
