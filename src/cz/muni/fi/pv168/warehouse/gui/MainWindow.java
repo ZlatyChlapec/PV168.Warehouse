@@ -562,7 +562,7 @@ public class MainWindow extends JFrame {
         shelf.setColumn(Integer.parseInt(updateShelfFrame.columnSpinner.getValue().toString()));
         shelf.setRow(Integer.parseInt(updateShelfFrame.rowSpinner.getValue().toString()));
         shelf.setMaxWeight(Double.parseDouble(updateShelfFrame.maxWeightSpinner.getValue().toString()));
-        shelf.setCapacity(Integer.parseInt(updateShelfFrame.rowSpinner.getValue().toString()));
+        shelf.setCapacity(Integer.parseInt(updateShelfFrame.capacitySpinner.getValue().toString()));
         shelf.setSecure(updateShelfFrame.secureCheckBox.isSelected());
 
         updateShelfButton.setEnabled(false);
@@ -585,14 +585,25 @@ public class MainWindow extends JFrame {
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
 
             try {
+                int c = warehouseManager.listAllItemsOnShelf(shelf).size();
+                double w = 0;
+                for (Item i : warehouseManager.listAllItemsOnShelf(shelf)) {
+                    w += i.getWeight();
+                }
 
-
+                if (shelf.getMaxWeight() < w ) {
+                    return null;
+                }
+                if (shelf.getCapacity() < c) {
+                    return null;
+                }
                 shelfManager.updateShelf(shelf);
+                return shelf;
+
             } catch (MethodFailureException e) {
                 logger.error(e.getMessage(), e);
                 throw new ExecutionException(e);
             }
-            return shelf;
         }
 
         @Override
@@ -601,7 +612,11 @@ public class MainWindow extends JFrame {
             listAllItems();
             try {
                 get();
-                JOptionPane.showMessageDialog(window, printOut("updateShelfSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
+                if (get() != null) {
+                    JOptionPane.showMessageDialog(window, printOut("updateShelfSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(window, printOut("capacityWeightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
