@@ -596,7 +596,35 @@ public class MainWindow extends JFrame {
     }
 
     private void selectShelfAllItems(MouseEvent e) {
+        ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
+        ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
+        StringBuilder data = new StringBuilder("<html>" +
+                                                    "<table>" +
+                                                        "<thead>" +
+                                                            "<tr>" +
+                                                                "<th>"+ printOut("weight") +"</th>" +
+                                                                "<th>"+ printOut("expiration") +"</th>" +
+                                                                "<th>"+ printOut("dangerous") +"</th>" +
+                                                            "</tr>" +
+                                                        "</thead>");
 
+        try {
+            int id = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+            int count = 0;
+            List<Item> list = warehouseManager.listAllItemsOnShelf(shelfManager.findShelfById(id));
+            for (Item i : list) {
+                data.append("<tr>");
+                    data.append("<td>"+ i.getWeight() +"</td>");
+                    data.append("<td>"+ getExpirationTime(i.getInsertionDate(), i.getStoreDays()) +"</td>");
+                    data.append("<td>"+ i.isDangerous() +"</td>");
+                data.append("</tr>");
+                count++;
+            }
+            data.append("</table><p>Space left: "+ (list.size() - count) +"</p></html>");
+            JOptionPane.showMessageDialog(this, data.toString(), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+        } catch (MethodFailureException e1) {
+            e1.printStackTrace();
+        }
     }
 
     //need control
