@@ -52,6 +52,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="slf4j-simple-1.7.7" level="project" />
   </component>
 </module>
 
