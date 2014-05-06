@@ -4,4 +4,3 @@ update item
 update shelf
 logovanie
 column a row nemozu byt rovnake
-h
