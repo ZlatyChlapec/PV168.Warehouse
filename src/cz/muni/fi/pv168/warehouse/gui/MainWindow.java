@@ -699,7 +699,8 @@ public class MainWindow extends JFrame {
                     }
                 } else if (warehouseManager.listAllItemsOnShelf(shelf).size() < shelf.getCapacity()) {
                     full = false;
-                } else if(!full && !already) {
+                }
+                if(!full && !already) {
                     warehouseManager.putItemOnShelf(shelf, item);
                 }
             } catch (MethodFailureException e) {
