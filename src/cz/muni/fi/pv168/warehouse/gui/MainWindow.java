@@ -72,7 +72,6 @@ public class MainWindow extends JFrame {
         item.setWeight(Double.parseDouble(weightSpinner.getValue().toString()));
         item.setStoreDays(Integer.parseInt(storeDaysSpinner.getValue().toString()));
         item.setDangerous(dangerousCheckBox.isSelected());
-
         if (Math.abs(item.getWeight() - 0.01) <= 0.01 && item.getStoreDays() == 1 && !item.isDangerous()) {
             int result = JOptionPane.showConfirmDialog(this, printOut("insertDefualtItem"), printOut("warning"), JOptionPane.YES_NO_OPTION);
             if (result == 0) {

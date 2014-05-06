@@ -26,6 +26,7 @@ public class ShelfManagerImpl implements ShelfManager {
 
     private void checkDataSource() {
         if (dataSource == null) {
+            logger.error("Error: Data source is not set");
             throw new IllegalStateException("Error: Data source is not set");
         }
     }
@@ -35,6 +36,7 @@ public class ShelfManagerImpl implements ShelfManager {
         checkDataSource();
         checkAllExceptId(shelf);
         if (shelf.getId() != null) {
+            logger.error("Error: shelf id is already set");
             throw new IllegalArgumentException("Error: shelf id is already set");
         }
 
@@ -57,6 +59,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         return shelf;
                     }
                 } else {
+                    logger.error("Error: More than 1 row added");
                     throw new SQLException("Error: More than 1 row added");
                 }
             } catch (SQLException ex) {
@@ -65,7 +68,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -73,14 +76,14 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.debug("Error setting autoCommit to true", ex2);
+                        logger.error("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.debug("Error creating shelf", ex);
+                logger.error("Error creating shelf", ex);
                 throw new MethodFailureException("Error creating shelf", ex);
             }
         } catch (SQLException ex) {
-            logger.debug("Error creating shelf", ex);
+            logger.error("Error creating shelf", ex);
             throw new MethodFailureException("Error creating shelf", ex);
         }
     }
@@ -89,9 +92,11 @@ public class ShelfManagerImpl implements ShelfManager {
     public Shelf deleteShelf(Shelf shelf) throws MethodFailureException {
         checkDataSource();
         if (shelf == null) {
+            logger.error("Error: shelf = null");
             throw new NullPointerException("Error: shelf = null");
         }
         if (shelf.getId() == null) {
+            logger.error("Error: shelf id is no set");
             throw new NullPointerException("Error: shelf id is no set");
         }
 
@@ -101,6 +106,7 @@ public class ShelfManagerImpl implements ShelfManager {
                 con.setAutoCommit(false);
                 int counter = query.executeUpdate();
                 if (counter != 1) {
+                    logger.error("Error: More than 1 row deleted");
                     throw new SQLException("Error: More than 1 row deleted");
                 }
 
@@ -112,7 +118,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -120,14 +126,14 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.debug("Error setting autoCommit to true", ex2);
+                        logger.error("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.debug("Error deleting shelf", ex);
+                logger.error("Error deleting shelf", ex);
                 throw new MethodFailureException("Error deleting shelf", ex);
             }
         } catch (SQLException ex) {
-            logger.debug("Error deleting shelf", ex);
+            logger.error("Error deleting shelf", ex);
             throw new MethodFailureException("Error deleting shelf", ex);
         }
     }
@@ -147,7 +153,7 @@ public class ShelfManagerImpl implements ShelfManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error listing all shelves", ex);
+            logger.error("Error listing all shelves", ex);
             throw new MethodFailureException("Error listing all shelves", ex);
         }
     }
@@ -163,14 +169,16 @@ public class ShelfManagerImpl implements ShelfManager {
                 if (rs.next()) {
                     Shelf shelf = fillShelf(rs);
                     if (rs.next()) {
+                        logger.error("Error: More rows with same id found");
                         throw new SQLException("Error: More rows with same id found");
                     }
                     return shelf;
                 } else
+                    logger.error("Error: No such shelf found");
                     throw new SQLException("Error: No such shelf found");
             }
         } catch (SQLException ex) {
-            logger.debug("Error finding shelf", ex);
+            logger.error("Error finding shelf", ex);
             throw new MethodFailureException("Error finding shelf", ex);
         }
     }
@@ -185,9 +193,11 @@ public class ShelfManagerImpl implements ShelfManager {
                 con.setAutoCommit(false);
                 checkAllExceptId(shelf);
                 if (shelf.getId() == null) {
+                    logger.error("Error: shelf id is null");
                     throw new NullPointerException("Error: shelf id is null");
                 }
                 if (shelf.getId() <= 0) {
+                    logger.error("Error: shelf id is not below/equal zero");
                     throw new IllegalArgumentException("Error: shelf id is not below/equal zero");
                 }
 
@@ -200,6 +210,7 @@ public class ShelfManagerImpl implements ShelfManager {
 
                 int counter = query.executeUpdate();
                 if (counter != 1) {
+                    logger.error("Error: More than 1 shelf with that id");
                     throw new SQLException("Error: More than 1 shelf with that id");
                 }
                 con.commit();
@@ -210,7 +221,7 @@ public class ShelfManagerImpl implements ShelfManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -218,12 +229,12 @@ public class ShelfManagerImpl implements ShelfManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.debug("Error setting autoCommit to true", ex2);
+                        logger.error("Error setting autoCommit to true", ex2);
                     }
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error updating shelf", ex);
+            logger.error("Error updating shelf", ex);
             throw new MethodFailureException("Error updating shelf", ex);
         }
     }
@@ -251,18 +262,23 @@ public class ShelfManagerImpl implements ShelfManager {
      */
     private void checkAllExceptId(Shelf shelf) {
         if (shelf == null) {
+            logger.error("shelf");
             throw new NullPointerException("shelf");
         }
         if (shelf.getColumn() < 0) {
+            logger.error("column smaller then zero");
             throw new IllegalArgumentException("column smaller then zero");
         }
         if (shelf.getRow() < 0) {
+            logger.error("row smaller then zero");
             throw new IllegalArgumentException("row smaller then zero");
         }
         if (shelf.getMaxWeight() <= 0.0D) {
+            logger.error("maxWeight can't be zero and lower");
             throw new IllegalArgumentException("maxWeight can't be zero and lower");
         }
         if (shelf.getCapacity() <= 0) {
+            logger.error("capacity can't be zero and lower");
             throw new IllegalArgumentException("capacity can't be zero and lower");
         }
     }

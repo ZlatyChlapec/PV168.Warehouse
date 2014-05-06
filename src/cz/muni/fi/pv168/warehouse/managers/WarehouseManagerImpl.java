@@ -34,6 +34,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
     private void checkDataSource() {
         if (dataSource == null) {
+            logger.error("Error: Data source is not set");
             throw new IllegalStateException("Error: Data source is not set");
         }
     }
@@ -54,6 +55,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                     if (rs.next()) {
                         shelfid = rs.getInt("shelfid");
                         if (rs.next()) {
+                            logger.error("Error: More rows with same id found");
                             throw new SQLException("Error: More rows with same id found");
                         }
                     } else {
@@ -67,10 +69,12 @@ public class WarehouseManagerImpl implements WarehouseManager {
                             if (rs1.next()) {
                                 shelf = fillShelf(rs1);
                                 if (rs1.next()) {
+                                    logger.error("Error: More rows with same id found");
                                     throw new SQLException("Error: More rows with same id found");
                                 }
                                 return shelf;
                             } else {
+                                logger.error("Something went wrong while withdrawing from db.");
                                 throw new SQLException("Something went wrong while withdrawing from db.");
                             }
                         }
@@ -78,7 +82,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error finding item", ex);
+            logger.error("Error finding item", ex);
             throw new MethodFailureException("Error finding item", ex);
         }
     }
@@ -103,7 +107,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error listing all items on shelf", ex);
+            logger.error("Error listing all items on shelf", ex);
             throw new MethodFailureException("Error listing all items on shelf", ex);
         }
     }
@@ -124,6 +128,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 checkShelfAttribute(shelf, item);
 
                 if (query.executeUpdate() != 1) {
+                    logger.error("Error: More than 1 item with that id");
                     throw new SQLException("Error: More than 1 item with that id");
                 }
                 con.commit();
@@ -133,7 +138,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         con.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -141,12 +146,12 @@ public class WarehouseManagerImpl implements WarehouseManager {
                             con.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.debug("Error setting autoCommit to true", ex2);
+                        logger.error("Error setting autoCommit to true", ex2);
                     }
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error putting item on shelf", ex);
+            logger.error("Error putting item on shelf", ex);
             throw new MethodFailureException("Error putting item on shelf", ex);
         }
     }
@@ -162,6 +167,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 query.setInt(1, item.getId());
 
                 if (query.executeUpdate() != 1) {
+                    logger.error("Error: Item can't be withdraw");
                     throw new SQLException("Error: Item can't be withdraw");
                 }
                 con.commit();
@@ -170,7 +176,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 if (con != null) {
                     con.rollback();
                 }
-                logger.debug("Error rollback database", ex);
+                logger.error("Error rollback database", ex);
                 throw new MethodFailureException("Error rollback database", ex);
             } finally {
                 try {
@@ -178,11 +184,11 @@ public class WarehouseManagerImpl implements WarehouseManager {
                         con.setAutoCommit(true);
                     }
                 } catch (SQLException ex2) {
-                    logger.debug("Error setting autoCommit to true", ex2);
+                    logger.error("Error setting autoCommit to true", ex2);
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Crash while updating DB.", ex);
+            logger.error("Crash while updating DB.", ex);
             throw new MethodFailureException("Crash while updating DB.", ex);
         }
     }
@@ -210,7 +216,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error removing all expired items", ex);
+            logger.error("Error removing all expired items", ex);
             throw new MethodFailureException("Error removing all expired items", ex);
         }
     }
@@ -232,7 +238,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error listing shelves with some free space", ex);
+            logger.error("Error listing shelves with some free space", ex);
             throw new MethodFailureException("Error listing shelves with some free space", ex);
         }
     }
@@ -253,7 +259,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
                 }
             }
         } catch (SQLException e) {
-            logger.debug("Error listing items without shelf", e);
+            logger.error("Error listing items without shelf", e);
             throw new MethodFailureException("Error listing items without shelf", e);
         }
     }
@@ -296,11 +302,13 @@ public class WarehouseManagerImpl implements WarehouseManager {
     private void checkObject(Object obj) {
         if(obj instanceof Item) {
             if (((Item) obj).getId() == null) {
+                logger.error("id");
                 throw new NullPointerException("id");
             }
         }
         if(obj instanceof Shelf) {
             if (((Shelf) obj).getId() == null) {
+                logger.error("id");
                 throw new NullPointerException("id");
             }
         }
@@ -321,12 +329,15 @@ public class WarehouseManagerImpl implements WarehouseManager {
         }
 
         if (shelf.getMaxWeight() < weight + item.getWeight()) {
+            logger.error("weight");
             throw new ShelfAttributeException("weight");
         }
         if (shelf.getCapacity() < list.size() + 1) {
+            logger.error("capacity");
             throw new ShelfAttributeException("capacity");
         }
         if (shelf.isSecure() != item.isDangerous()) {
+            logger.error("security");
             throw new ShelfAttributeException("security");
         }
     }

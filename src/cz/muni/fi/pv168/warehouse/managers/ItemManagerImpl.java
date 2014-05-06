@@ -26,7 +26,7 @@ public class ItemManagerImpl implements ItemManager {
 
     private void checkDataSource() {
         if (dataSource == null) {
-            logger.debug("DataSource je null");
+            logger.error("DataSource is null");
             throw new IllegalStateException("Error: Data source is not set");
         }
     }
@@ -36,6 +36,7 @@ public class ItemManagerImpl implements ItemManager {
         checkDataSource();
         itemCheck(item);
         if (item.getId() != null) {
+            logger.error("id of item is null");
             throw new NullPointerException("Error: item id is already set");
         }
 
@@ -49,12 +50,14 @@ public class ItemManagerImpl implements ItemManager {
 
                 int addedRows = query.executeUpdate();
                 if (addedRows != 1) {
+                    logger.error("Error: More than 1 row added");
                     throw new MethodFailureException("Error: More than 1 row added");
                 }
 
                 ResultSet rs = query.getGeneratedKeys();
                 if (rs.next()) {
                     if (rs.getMetaData().getColumnCount() != 1) {
+                        logger.error("Error: More than 1 key found");
                         throw new MethodFailureException("Error: More than 1 key found");
                     }
                     item.setId(rs.getInt(1));
@@ -68,22 +71,22 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     if (connection != null) {
                         try {
                             connection.setAutoCommit(true);
                         } catch (SQLException ex2) {
-                            logger.debug("Error setting autoCommit to true", ex2);
+                            logger.error("Error setting autoCommit to true", ex2);
                         }
                     }
                 }
-                logger.debug("Error creating item", ex);
+                logger.error("Error creating item", ex);
                 throw new MethodFailureException("Error creating item", ex);
             }
         } catch (SQLException ex) {
-            logger.debug("Error creating item", ex);
+            logger.error("Error creating item", ex);
             throw new MethodFailureException("Error creating item", ex);
         }
     }
@@ -92,9 +95,11 @@ public class ItemManagerImpl implements ItemManager {
     public Item deleteItem(Item item) throws MethodFailureException {
         checkDataSource();
         if (item == null) {
+            logger.error("Error: item = null");
             throw new NullPointerException("Error: item = null");
         }
         if (item.getId() == null) {
+            logger.error("Error: item id is not set");
             throw new NullPointerException("Error: item id is not set");
         }
 
@@ -105,6 +110,7 @@ public class ItemManagerImpl implements ItemManager {
 
                 int deletedRows = query.executeUpdate();
                 if (deletedRows != 1) {
+                    logger.error("Error: More than 1 row deleted");
                     throw new MethodFailureException("Error: More than 1 row deleted");
                 }
 
@@ -117,22 +123,22 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     if (connection != null) {
                         try {
                             connection.setAutoCommit(true);
                         } catch (SQLException ex2) {
-                            logger.debug("Error setting autoCommit to true", ex2);
+                            logger.error("Error setting autoCommit to true", ex2);
                         }
                     }
                 }
-                logger.debug("Error deleting item", ex);
+                logger.error("Error deleting item", ex);
                 throw new MethodFailureException("Error deleting item", ex);
             }
         } catch (SQLException ex) {
-            logger.debug("Error deleting item", ex);
+            logger.error("Error deleting item", ex);
             throw new MethodFailureException("Error deleting item", ex);
         }
     }
@@ -152,7 +158,7 @@ public class ItemManagerImpl implements ItemManager {
                 return result;
             }
         } catch (SQLException ex) {
-            logger.debug("Error listing all items", ex);
+            logger.error("Error listing all items", ex);
             throw new MethodFailureException("Error listing all items", ex);
         }
     }
@@ -168,6 +174,7 @@ public class ItemManagerImpl implements ItemManager {
                 if (rs.next()) {
                     Item item = resultToItem(rs);
                     if (rs.next()) {
+                        logger.error("Error: More rows with same id found");
                         throw new MethodFailureException("Error: More rows with same id found");
                     }
                     return item;
@@ -176,7 +183,7 @@ public class ItemManagerImpl implements ItemManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error finding item", ex);
+            logger.error("Error finding item", ex);
             throw new MethodFailureException("Error finding item", ex);
         }
     }
@@ -186,9 +193,11 @@ public class ItemManagerImpl implements ItemManager {
         checkDataSource();
         itemCheck(item);
         if (item.getId() == null) {
+            logger.error("Error: item id is null");
             throw new NullPointerException("Error: item id is null");
         }
         if (item.getId() <= 0) {
+            logger.error("Error: item id is not below/equal zero");
             throw new IllegalArgumentException("Error: item id is not below/equal zero");
         }
         try (Connection connection = dataSource.getConnection()) {
@@ -200,6 +209,7 @@ public class ItemManagerImpl implements ItemManager {
 
                 int updatedRows = query.executeUpdate();
                 if (updatedRows != 1) {
+                    logger.error("Error: More than 1 item with that id");
                     throw new MethodFailureException("Error: More than 1 item with that id");
                 }
 
@@ -212,7 +222,7 @@ public class ItemManagerImpl implements ItemManager {
                         connection.rollback();
                     }
                 } catch (SQLException ex1) {
-                    logger.debug("Error rollback database", ex1);
+                    logger.error("Error rollback database", ex1);
                     throw new MethodFailureException("Error rollback database", ex1);
                 } finally {
                     try {
@@ -220,14 +230,14 @@ public class ItemManagerImpl implements ItemManager {
                             connection.setAutoCommit(true);
                         }
                     } catch (SQLException ex2) {
-                        logger.debug("Error setting autoCommit to true", ex2);
+                        logger.error("Error setting autoCommit to true", ex2);
                     }
                 }
-                logger.debug("Error updating item", ex);
+                logger.error("Error updating item", ex);
                 throw new MethodFailureException("Error updating item", ex);
             }
         } catch (SQLException ex) {
-            logger.debug("Error updating item", ex);
+            logger.error("Error updating item", ex);
             throw new MethodFailureException("Error updating item", ex);
         }
     }
@@ -245,6 +255,7 @@ public class ItemManagerImpl implements ItemManager {
                     cal.setTime(rs.getDate("insertiondate"));
                     cal.add(Calendar.DATE, rs.getInt("storedays"));
                     if (rs.next()) {
+                        logger.error("Error: More rows with same id found");
                         throw new MethodFailureException("Error: More rows with same id found");
                     }
                     return cal.getTime();
@@ -253,7 +264,7 @@ public class ItemManagerImpl implements ItemManager {
                 }
             }
         } catch (SQLException ex) {
-            logger.debug("Error retrieving expiration", ex);
+            logger.error("Error retrieving expiration", ex);
             throw new MethodFailureException("Error retrieving expiration", ex);
         }
     }
@@ -264,12 +275,15 @@ public class ItemManagerImpl implements ItemManager {
      */
     private void itemCheck(Item item) {
         if (item == null) {
+            logger.error("Error: item = null");
             throw new NullPointerException("Error: item = null");
         }
         if (item.getWeight() <= 0) {
+            logger.error("Error: item weight is 0 or negative number");
             throw new IllegalArgumentException("Error: item weight is 0 or negative number");
         }
         if (item.getStoreDays() <= 0) {
+            logger.error("Error: item storedays is 0 or negative number");
             throw new IllegalArgumentException("Error: item storedays is 0 or negative number");
         }
     }
