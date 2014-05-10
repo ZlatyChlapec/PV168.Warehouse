@@ -14,6 +14,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -25,6 +27,8 @@ import java.util.concurrent.ExecutionException;
 public class MainWindow extends JFrame {
 
     public static final Logger logger = LoggerFactory.getLogger(MainWindow.class);
+
+    private static final int decNum = 2;
 
     private ResourceBundle myResources;
     private InsertItemFrame updateItemFrame;
@@ -60,6 +64,13 @@ public class MainWindow extends JFrame {
         return myResources.getString(value);
     }
 
+    public static double round(double value) {
+
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(decNum, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
     private void insertItemButtonActionPerformed(ActionEvent e) {
         if (swingWorkerAddItem != null) {
             logger.error("Operation is already in progress", e);
@@ -69,7 +80,7 @@ public class MainWindow extends JFrame {
         insertItemButton.setEnabled(false);
 
         Item item = new Item();
-        item.setWeight(Double.parseDouble(weightSpinner.getValue().toString()));
+        item.setWeight(round(Double.parseDouble(weightSpinner.getValue().toString())));
         item.setStoreDays(Integer.parseInt(storeDaysSpinner.getValue().toString()));
         item.setDangerous(dangerousCheckBox.isSelected());
         if (Math.abs(item.getWeight() - 0.01) <= 0.01 && item.getStoreDays() == 1 && !item.isDangerous()) {
@@ -88,7 +99,7 @@ public class MainWindow extends JFrame {
 
     class SwingWorkerAddItem extends SwingWorker<Item, Void> {
         private ItemManager itemManager;
-        private Item item;
+        private Item item = new Item();
         private boolean inserted = false;
 
         public SwingWorkerAddItem(Item item) {
@@ -102,15 +113,19 @@ public class MainWindow extends JFrame {
             try {
                 for (Shelf shelf : warehouseManager.listShelvesWithSomeFreeSpace()) {
                     int totalWeight = 0;
+
                     for (Item item : warehouseManager.listAllItemsOnShelf(shelf)) {
                         totalWeight += item.getWeight();
                     }
+
                     if (shelf.isSecure() == item.isDangerous() && shelf.getMaxWeight() >= totalWeight + item.getWeight()) {
                         itemManager.createItem(item);
                         warehouseManager.putItemOnShelf(shelf, item);
                         inserted = true;
+                        break;
                     }
                 }
+
                 if (!inserted) {
                     itemManager.createItem(item);
                 }
@@ -144,6 +159,7 @@ public class MainWindow extends JFrame {
 
     private void insertShelfButtonActionPerformed(ActionEvent e) {
         if (swingWorkerAddShelf != null) {
+            logger.error("Operation is already in progress");
             throw new IllegalStateException("Operation is already in progress");
         }
 
@@ -153,7 +169,7 @@ public class MainWindow extends JFrame {
         shelf.setColumn(Integer.parseInt(columnSpinner.getValue().toString()));
         shelf.setRow(Integer.parseInt(rowSpinner.getValue().toString()));
         shelf.setCapacity(Integer.parseInt(capacitySpinner.getValue().toString()));
-        shelf.setMaxWeight(Double.parseDouble(maxWeightSpinner.getValue().toString()));
+        shelf.setMaxWeight(round(Double.parseDouble(maxWeightSpinner.getValue().toString())));
         shelf.setSecure(secureCheckBox.isSelected());
 
         if (Math.abs(shelf.getMaxWeight() - 0.01) <= 0.01 && shelf.getColumn() == 1 && shelf.getRow() == 1 && shelf.getCapacity() == 1 && !shelf.isSecure()) {
@@ -172,8 +188,8 @@ public class MainWindow extends JFrame {
 
     class SwingWorkerAddShelf extends SwingWorker<Shelf, Void> {
         private ShelfManager shelfManager;
-        private Shelf shelf;
-        private boolean duplicit = false;
+        private Shelf shelf = new Shelf();
+        private boolean duplicity = false;
 
         public SwingWorkerAddShelf(Shelf shelf) {
             this.shelf = shelf;
@@ -186,10 +202,10 @@ public class MainWindow extends JFrame {
             try {
                 for (Shelf s : shelfManager.listAllShelves()) {
                     if (s.getColumn() == shelf.getColumn() && s.getRow() == shelf.getRow()) {
-                        duplicit = true;
+                        duplicity = true;
                     }
                 }
-                if (!duplicit) {
+                if (!duplicity) {
                     shelfManager.createShelf(shelf);
                 } else {
                     shelf = null;
@@ -211,7 +227,7 @@ public class MainWindow extends JFrame {
                 logger.error(e.getMessage(),e);
             }
 
-            if (duplicit) {
+            if (duplicity) {
                 JOptionPane.showMessageDialog(window, printOut("duplicateShelfCoords"), printOut("error"), JOptionPane.ERROR_MESSAGE);
             }
 
@@ -247,7 +263,7 @@ public class MainWindow extends JFrame {
     class SwingWorkerDeleteItem extends SwingWorker<Item, Void> {
         private ItemManager itemManager;
         private Integer id;
-        private Item item;
+        private Item item = new Item();
 
         public SwingWorkerDeleteItem(Integer id) {
             this.id = id;
@@ -307,7 +323,7 @@ public class MainWindow extends JFrame {
     class SwingWorkerDeleteShelf extends SwingWorker<Shelf, Void> {
         private ShelfManager shelfManager;
         private Integer id;
-        private Shelf shelf;
+        private Shelf shelf = new Shelf();
 
         public SwingWorkerDeleteShelf(Integer id) {
             this.id = id;
@@ -319,6 +335,9 @@ public class MainWindow extends JFrame {
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
                     shelf = shelfManager.findShelfById(id);
+                    if (warehouseManager.listAllItemsOnShelf(shelf).size() != 0) {
+                        return null;
+                    }
                     shelfManager.deleteShelf(shelf);
             } catch (MethodFailureException ex) {
                 logger.error(ex.getMessage(), ex);
@@ -332,8 +351,11 @@ public class MainWindow extends JFrame {
             listAllShelves();
             listAllItems();
             try {
-                get();
-                JOptionPane.showMessageDialog(window, printOut("deleteShelfSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
+                if (get() == null) {
+                    JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("shelfNotEmpty"), JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(window, printOut("deleteShelfSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
@@ -345,26 +367,13 @@ public class MainWindow extends JFrame {
     }
 
     private void updateItemButtonActionPerformed(ActionEvent e) {
-//        if (updateShelfFrame.isVisible()) {
-//            updateShelfFrame.requestFocus();
-//        } else if (updateItemFrame.isVisible()) {
-//            updateItemFrame.requestFocus();
-//        } else {
-//            updateItemFrame.setVisible(true);
-//        }
 
         updateItemFrame = new InsertItemFrame();
         updateItemFrame.setVisible(true);
     }
 
     private void updateShelfButtonActionPerformed(ActionEvent e) {
-//        if (updateItemFrame.isVisible()) {
-//            updateItemFrame.requestFocus();
-//        } else if (updateShelfFrame.isVisible()){
-//            updateShelfFrame.requestFocus();
-//        } else {
-//            updateShelfFrame.setVisible(true);
-//        }
+
         updateShelfFrame = new InsertShelfFrame();
         updateShelfFrame.setVisible(true);
     }
@@ -448,7 +457,7 @@ public class MainWindow extends JFrame {
                 }
                 return list;
             } catch (MethodFailureException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
                 throw new ExecutionException(e);
             }
         }
@@ -479,7 +488,7 @@ public class MainWindow extends JFrame {
         Item item = new Item();
         int id = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
         item.setId(id);
-        item.setWeight(Double.parseDouble(updateItemFrame.weightSpinner.getValue().toString()));
+        item.setWeight(round(Double.parseDouble(updateItemFrame.weightSpinner.getValue().toString())));
         item.setStoreDays(Integer.parseInt(updateItemFrame.storeDaysSpinner.getValue().toString()));
         item.setDangerous(updateItemFrame.dangerousCheckBox.isSelected());
 
@@ -535,8 +544,9 @@ public class MainWindow extends JFrame {
                 get();
                 if (get() != null) {
                     JOptionPane.showMessageDialog(window, printOut("updateItemSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(window, printOut("weightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
                 }
-                JOptionPane.showMessageDialog(window, printOut("weightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
@@ -561,7 +571,7 @@ public class MainWindow extends JFrame {
         shelf.setId(id);
         shelf.setColumn(Integer.parseInt(updateShelfFrame.columnSpinner.getValue().toString()));
         shelf.setRow(Integer.parseInt(updateShelfFrame.rowSpinner.getValue().toString()));
-        shelf.setMaxWeight(Double.parseDouble(updateShelfFrame.maxWeightSpinner.getValue().toString()));
+        shelf.setMaxWeight(round(Double.parseDouble(updateShelfFrame.maxWeightSpinner.getValue().toString())));
         shelf.setCapacity(Integer.parseInt(updateShelfFrame.capacitySpinner.getValue().toString()));
         shelf.setSecure(updateShelfFrame.secureCheckBox.isSelected());
 
@@ -666,8 +676,20 @@ public class MainWindow extends JFrame {
     }
 
     private void putItemWithShelfButtonActionPerformed(ActionEvent e) {
-        int itemId = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
-        int shelfId = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+        System.out.println(shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0).toString());
+        Integer itemId = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
+        Integer shelfId = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+
+        if(itemId == -1) {
+            JOptionPane.showMessageDialog(window, printOut("selectError"), printOut("selectShelfError"), JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if(shelfId == -1) {
+            JOptionPane.showMessageDialog(window, printOut("selectError"), printOut("selectItemError"), JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         SwingWorkerPutItemWithShelf swingWorker = new SwingWorkerPutItemWithShelf(itemId, shelfId);
         swingWorker.execute();
         putItemWithShelfButton.setEnabled(false);
