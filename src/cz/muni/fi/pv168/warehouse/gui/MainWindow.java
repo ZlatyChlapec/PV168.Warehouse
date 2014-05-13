@@ -594,7 +594,8 @@ public class MainWindow extends JFrame {
                         return null;
                     }
                 } else {
-                    return null;
+                    itemManager.updateItem(item);
+                    return item;
                 }
             } catch (MethodFailureException e) {
                 logger.error(e.getMessage(), e);
