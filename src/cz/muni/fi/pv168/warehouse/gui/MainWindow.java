@@ -4,7 +4,9 @@ import cz.muni.fi.pv168.warehouse.database.SpringConfig;
 import cz.muni.fi.pv168.warehouse.entities.Item;
 import cz.muni.fi.pv168.warehouse.entities.Shelf;
 import cz.muni.fi.pv168.warehouse.exceptions.MethodFailureException;
-import cz.muni.fi.pv168.warehouse.managers.*;
+import cz.muni.fi.pv168.warehouse.managers.ItemManagerImpl;
+import cz.muni.fi.pv168.warehouse.managers.ShelfManagerImpl;
+import cz.muni.fi.pv168.warehouse.managers.WarehouseManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -32,16 +34,20 @@ public class MainWindow extends JFrame {
 
     private static final int decNum = 2;
 
+    private MainWindow window;
     private ResourceBundle myResources;
     private InsertItemFrame updateItemFrame;
     private InsertShelfFrame updateShelfFrame;
+    private ItemManagerImpl itemManager;
+    private ShelfManagerImpl shelfManager;
     private WarehouseManagerImpl warehouseManager;
-    private MainWindow window;
 
     public MainWindow() {
 
         window = this;
         ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
+        itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
+        shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
         warehouseManager = springContext.getBean("warehouseManager", WarehouseManagerImpl.class);
         try {
             myResources = ResourceBundle.getBundle("cz/muni/fi/pv168/warehouse/resources/lang", Locale.getDefault());
@@ -87,7 +93,6 @@ public class MainWindow extends JFrame {
     }
 
     class SwingWorkerAddItem extends SwingWorker<Item, Void> {
-        private ItemManager itemManager;
         private Item item = new Item();
         private boolean inserted = false;
 
@@ -97,8 +102,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Item doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 for (Shelf shelf : warehouseManager.listShelvesWithSomeFreeSpace()) {
                     double totalWeight = 0;
@@ -131,6 +134,7 @@ public class MainWindow extends JFrame {
             listAllItems(-1);
             try {
                 get();
+                JOptionPane.showMessageDialog(window, printOut("itemInserted"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
                 if (!inserted) {
                     JOptionPane.showMessageDialog(window, printOut("noSuitableShelf"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
                 }
@@ -171,7 +175,6 @@ public class MainWindow extends JFrame {
     }
 
     class SwingWorkerAddShelf extends SwingWorker<Shelf, Void> {
-        private ShelfManager shelfManager;
         private Shelf shelf = new Shelf();
         private boolean duplicity = false;
 
@@ -181,8 +184,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Shelf doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
                 for (Shelf s : shelfManager.listAllShelves()) {
                     if (s.getColumn() == shelf.getColumn() && s.getRow() == shelf.getRow()) {
@@ -207,6 +208,7 @@ public class MainWindow extends JFrame {
             listAllItems(-1);
             try {
                 get();
+                JOptionPane.showMessageDialog(window, printOut("shelfInserted"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
             }
@@ -241,7 +243,6 @@ public class MainWindow extends JFrame {
     }
 
     class SwingWorkerDeleteItem extends SwingWorker<Item, Void> {
-        private ItemManager itemManager;
         private int id;
         private Item item = new Item();
 
@@ -251,8 +252,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Item doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 item = itemManager.findItemById(id);
                 itemManager.deleteItem(item);
@@ -298,7 +297,6 @@ public class MainWindow extends JFrame {
 
     class SwingWorkerDeleteShelf extends SwingWorker<Shelf, Void> {
         private boolean containItems = false;
-        private ShelfManager shelfManager;
         private int id;
         private Shelf shelf = new Shelf();
 
@@ -308,8 +306,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Shelf doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
                     shelf = shelfManager.findShelfById(id);
                     if (warehouseManager.listAllItemsOnShelf(shelf).size() != 0) {
@@ -368,8 +364,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Item doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            ItemManager itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 return itemManager.findItemById(id);
             } catch (MethodFailureException ex) {
@@ -416,8 +410,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Shelf doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
                 return shelfManager.findShelfById(id);
             } catch (MethodFailureException ex) {
@@ -506,13 +498,9 @@ public class MainWindow extends JFrame {
 
     class SwingWorkerListAllItems extends SwingWorker<Map<Item, Shelf>, Void> {
 
-        private ItemManager itemManager;
-
         @Override
         protected Map<Item, Shelf> doInBackground() throws Exception {
             Map<Item, Shelf> list = new HashMap<>();
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 for (Item i : itemManager.listAllItems()) {
 
@@ -527,13 +515,10 @@ public class MainWindow extends JFrame {
     }
 
     class SwingWorkerListAllShelves extends SwingWorker<List<Shelf>, Void> {
-        private ShelfManager shelfManager;
 
         @Override
         protected List<Shelf> doInBackground() throws Exception {
             List<Shelf> list = new ArrayList<>();
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
             try {
                 list.addAll(shelfManager.listAllShelves());
             } catch (MethodFailureException e) {
@@ -562,7 +547,6 @@ public class MainWindow extends JFrame {
 
     class SwingWorkerUpdateItem extends SwingWorker<Item, Void> {
         private boolean dangerousChanged = false;
-        private ItemManager itemManager;
         private Item item;
 
         public SwingWorkerUpdateItem(Item item) {
@@ -571,8 +555,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Item doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
 
             try {
                 Shelf shelf = warehouseManager.findShelfWithItem(item);
@@ -654,7 +636,6 @@ public class MainWindow extends JFrame {
         private boolean maxWeight = false;
         private boolean capcityError = false;
         private boolean changedSecurity = false;
-        private ShelfManager shelfManager;
         private Shelf shelf;
 
         public SwingWorkerUpdateShelf(Shelf shelf) {
@@ -663,8 +644,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected List<Item> doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
 
             try {
                 int capacity = warehouseManager.listAllItemsOnShelf(shelf).size();
@@ -807,9 +786,6 @@ public class MainWindow extends JFrame {
 
         @Override
         protected Void doInBackground() throws Exception {
-            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-            ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
-            ItemManager itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 Item item = itemManager.findItemById(itemId);
                 Shelf shelf = shelfManager.findShelfById(shelfId);
@@ -871,9 +847,6 @@ public class MainWindow extends JFrame {
     }
 
     private void selectShelfAllItems(MouseEvent e) {
-        ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
-        ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
-
         try {
             int id = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
             Shelf shelf = shelfManager.findShelfById(id);
