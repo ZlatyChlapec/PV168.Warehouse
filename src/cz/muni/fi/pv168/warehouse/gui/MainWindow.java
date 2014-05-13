@@ -53,7 +53,7 @@ public class MainWindow extends JFrame {
             myResources = ResourceBundle.getBundle("cz/muni/fi/pv168/warehouse/resources/lang", Locale.getDefault());
         } catch (MissingResourceException e) {
             myResources = ResourceBundle.getBundle("cz/muni/fi/pv168/warehouse/resources/lang", new Locale("en", "GB"));
-            JOptionPane.showMessageDialog(window, printOut("bundleNotFound"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(window, "We are sorry but our program is not translated to your language yet.", printOut("info"), JOptionPane.INFORMATION_MESSAGE);
             logger.info("Default resource bundle not found", e);
         }
         initComponents();
