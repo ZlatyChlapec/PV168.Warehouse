@@ -2016,7 +2016,6 @@ public class MainWindow extends JFrame {
             });
             itemsTable.setColumnSelectionAllowed(false);
             itemsTable.getTableHeader().setReorderingAllowed(false);
-            itemsScrollPane.setViewportView(itemsTable);
             if (itemsTable.getColumnModel().getColumnCount() > 0) {
                 itemsTable.getColumnModel().getColumn(0).setResizable(false);
                 itemsTable.getColumnModel().getColumn(1).setResizable(false);
@@ -2039,7 +2038,6 @@ public class MainWindow extends JFrame {
             itemsScrollPane.setViewportView(itemsTable);
 
             listAllItemsLabel.setFont(new Font("Century", 0, 14));
-            listAllItemsLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
             insertItemButton.setFont(new Font("Century", 0, 14));
             insertItemButton.setText(printOut("close"));
@@ -2050,26 +2048,27 @@ public class MainWindow extends JFrame {
                 }
             });
 
-            GroupLayout layout = new GroupLayout(getContentPane());
+            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
             getContentPane().setLayout(layout);
             layout.setHorizontalGroup(
-                    layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(insertItemButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                    .addGap(181, 181, 181)
-                                                    .addComponent(listAllItemsLabel))
-                                            .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 534, GroupLayout.PREFERRED_SIZE))
-                                    .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGap(181, 181, 181)
+                                    .addComponent(listAllItemsLabel))
+                            .addComponent(itemsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                    .addGap(121, 121, 121)
+                                    .addComponent(insertItemButton))
             );
             layout.setVerticalGroup(
-                    layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                     .addComponent(listAllItemsLabel)
-                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(insertItemButton))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(itemsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(insertItemButton)
+                                    .addGap(16, 16, 16))
             );
 
             pack();
