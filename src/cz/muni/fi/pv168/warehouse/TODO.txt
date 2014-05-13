@@ -1,11 +1,10 @@
 TODO
+fix vyskakovacie okno z itemami dáko sa pokazilo
 
-dve tlačítka hore, 
+dorobiť JOptionPane aj k úspešným operáciám
 
-update by mohol prednastaviť predchádzajúce hodnoty, // toto by bolo asi zbytočne veľa roboty, lebo nemôžem nastaviťdefaultné hodnoty updatovaného itemu pretože to sa robí vo vlákne dispatcheru.
+BONUS
 
-nefunguje pridávanie do shlefov keď nič neoznačíš alebo keď označíš iba jedno.
+skúsiť nastaviť dáke zoraďovanie do tabuľiek
 
-pridať tlačítko na withdraw item from shelf
-
-odstrániť z update okien dangerous ... nebude sa dať zmeniť to či je item nebezpečný alebo nie je. Aj v shelfe safe. Zbytočne veľa problémov z prehadzovaním už daných itemov.
+insert shelf nech automaticky zvyšuje hodnoty

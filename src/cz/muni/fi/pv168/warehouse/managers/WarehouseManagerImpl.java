@@ -120,8 +120,7 @@ public class WarehouseManagerImpl implements WarehouseManager {
 
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);
-            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = ? WHERE id = ? AND " +
-                    "SHELFID IS NULL")) {
+            try (PreparedStatement query = con.prepareStatement("UPDATE ADMIN.ITEM SET shelfid = ? WHERE id = ?")) {
                 query.setInt(1, shelf.getId());
                 query.setInt(2, item.getId());
 

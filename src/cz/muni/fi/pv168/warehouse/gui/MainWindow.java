@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * @author Slapy
+ * All GUI features and logic.
+ * @author Oliver Mrázik & Martin Zaťko
+ * @version 2014-05-12
  */
 public class MainWindow extends JFrame {
 
@@ -33,12 +35,6 @@ public class MainWindow extends JFrame {
     private ResourceBundle myResources;
     private InsertItemFrame updateItemFrame;
     private InsertShelfFrame updateShelfFrame;
-    private SwingWorkerAddItem swingWorkerAddItem;
-    private SwingWorkerAddShelf swingWorkerAddShelf;
-    private SwingWorkerDeleteItem swingWorkerDeleteItem;
-    private SwingWorkerDeleteShelf swingWorkerDeleteShelf;
-    private SwingWorkerUpdateItem swingWorkerUpdateItem;
-    private SwingWorkerUpdateShelf swingWorkerUpdateShelf;
     private WarehouseManagerImpl warehouseManager;
     private MainWindow window;
 
@@ -49,13 +45,10 @@ public class MainWindow extends JFrame {
         warehouseManager = springContext.getBean("warehouseManager", WarehouseManagerImpl.class);
         try {
             myResources = ResourceBundle.getBundle("cz/muni/fi/pv168/warehouse/resources/lang", Locale.getDefault());
-//            updateItemFrame = new InsertItemFrame();
-//            updateShelfFrame = new InsertShelfFrame();
         } catch (MissingResourceException e) {
-            logger.error("Default resource bundle not found", e);
-            myResources = ResourceBundle.getBundle("lang", new Locale("en", "GB"));
-//            updateItemFrame = new InsertItemFrame();
-//            updateShelfFrame = new InsertShelfFrame();
+            myResources = ResourceBundle.getBundle("cz/muni/fi/pv168/warehouse/resources/lang", new Locale("en", "GB"));
+            JOptionPane.showMessageDialog(window, printOut("bundleNotFound"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+            logger.info("Default resource bundle not found", e);
         }
         initComponents();
     }
@@ -72,11 +65,7 @@ public class MainWindow extends JFrame {
     }
 
     private void insertItemButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerAddItem != null) {
-            logger.error("Operation is already in progress", e);
-            throw new IllegalStateException("Operation is already in progress");
-        }
-
+        SwingWorkerAddItem swingWorker;
         insertItemButton.setEnabled(false);
 
         Item item = new Item();
@@ -86,14 +75,14 @@ public class MainWindow extends JFrame {
         if (Math.abs(item.getWeight() - 0.01) <= 0.01 && item.getStoreDays() == 1 && !item.isDangerous()) {
             int result = JOptionPane.showConfirmDialog(this, printOut("insertDefualtItem"), printOut("warning"), JOptionPane.YES_NO_OPTION);
             if (result == 0) {
-                swingWorkerAddItem = new SwingWorkerAddItem(item);
-                swingWorkerAddItem.execute();
+                swingWorker = new SwingWorkerAddItem(item);
+                swingWorker.execute();
             } else {
                 insertItemButton.setEnabled(true);
             }
         } else {
-            swingWorkerAddItem = new SwingWorkerAddItem(item);
-            swingWorkerAddItem.execute();
+            swingWorker = new SwingWorkerAddItem(item);
+            swingWorker.execute();
         }
     }
 
@@ -112,7 +101,7 @@ public class MainWindow extends JFrame {
             itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
             try {
                 for (Shelf shelf : warehouseManager.listShelvesWithSomeFreeSpace()) {
-                    int totalWeight = 0;
+                    double totalWeight = 0;
 
                     for (Item item : warehouseManager.listAllItemsOnShelf(shelf)) {
                         totalWeight += item.getWeight();
@@ -139,7 +128,7 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
                 get();
                 if (!inserted) {
@@ -153,16 +142,11 @@ public class MainWindow extends JFrame {
             storeDaysSpinner.setValue(1);
             dangerousCheckBox.setSelected(false);
             insertItemButton.setEnabled(true);
-            swingWorkerAddItem = null;
         }
     }
 
     private void insertShelfButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerAddShelf != null) {
-            logger.error("Operation is already in progress");
-            throw new IllegalStateException("Operation is already in progress");
-        }
-
+        SwingWorkerAddShelf swingWorker;
         insertShelfButton.setEnabled(false);
 
         Shelf shelf = new Shelf();
@@ -175,14 +159,14 @@ public class MainWindow extends JFrame {
         if (Math.abs(shelf.getMaxWeight() - 0.01) <= 0.01 && shelf.getColumn() == 1 && shelf.getRow() == 1 && shelf.getCapacity() == 1 && !shelf.isSecure()) {
             int result = JOptionPane.showConfirmDialog(this, printOut("insertDefualtShelf"), printOut("warning"), JOptionPane.YES_NO_OPTION);
             if (result == 0) {
-                swingWorkerAddShelf = new SwingWorkerAddShelf(shelf);
-                swingWorkerAddShelf.execute();
+                swingWorker = new SwingWorkerAddShelf(shelf);
+                swingWorker.execute();
             } else {
                 insertShelfButton.setEnabled(true);
             }
         } else {
-            swingWorkerAddShelf = new SwingWorkerAddShelf(shelf);
-            swingWorkerAddShelf.execute();
+            swingWorker = new SwingWorkerAddShelf(shelf);
+            swingWorker.execute();
         }
     }
 
@@ -220,11 +204,11 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
                 get();
             } catch (InterruptedException | ExecutionException e) {
-                logger.error(e.getMessage(),e);
+                logger.error(e.getMessage(), e);
             }
 
             if (duplicity) {
@@ -237,15 +221,11 @@ public class MainWindow extends JFrame {
             capacitySpinner.setValue(1);
             maxWeightSpinner.setValue(0.01);
             secureCheckBox.setSelected(false);
-            swingWorkerAddShelf = null;
         }
     }
 
     private void deleteItemButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerAddItem != null) {
-            logger.error("Operation is already in progress", e);
-            throw new IllegalStateException("Operation is already in progress");
-        }
+        SwingWorkerDeleteItem swingWorker;
 
         if (itemsTable.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, printOut("notSelectedRow"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
@@ -255,17 +235,17 @@ public class MainWindow extends JFrame {
         int result = JOptionPane.showConfirmDialog(window, printOut("deletedConfirmation"), printOut("warning"), JOptionPane.YES_NO_OPTION);
         if (result == 0) {
             deleteItemButton.setEnabled(false);
-            swingWorkerDeleteItem = new SwingWorkerDeleteItem((Integer) itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0));
-            swingWorkerDeleteItem.execute();
+            swingWorker = new SwingWorkerDeleteItem((Integer) itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0));
+            swingWorker.execute();
         }
     }
 
     class SwingWorkerDeleteItem extends SwingWorker<Item, Void> {
         private ItemManager itemManager;
-        private Integer id;
+        private int id;
         private Item item = new Item();
 
-        public SwingWorkerDeleteItem(Integer id) {
+        public SwingWorkerDeleteItem(int id) {
             this.id = id;
         }
 
@@ -287,7 +267,7 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
                 get();
                 JOptionPane.showMessageDialog(window, printOut("deleteItemSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
@@ -296,15 +276,11 @@ public class MainWindow extends JFrame {
                 JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
             }
             deleteItemButton.setEnabled(true);
-            swingWorkerDeleteItem = null;
         }
     }
 
     private void deleteShelfButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerDeleteShelf != null) {
-            logger.error("Operation is already in progress", e);
-            throw new IllegalStateException("Operation is already in progress");
-        }
+        SwingWorkerDeleteShelf swingWorker;
 
         if (shelvesTable.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, printOut("notSelectedRow"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
@@ -315,17 +291,18 @@ public class MainWindow extends JFrame {
 
         if (result == 0) {
             deleteShelfButton.setEnabled(false);
-            swingWorkerDeleteShelf = new SwingWorkerDeleteShelf((Integer) shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0));
-            swingWorkerDeleteShelf.execute();
+            swingWorker = new SwingWorkerDeleteShelf((Integer) shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0));
+            swingWorker.execute();
         }
     }
 
     class SwingWorkerDeleteShelf extends SwingWorker<Shelf, Void> {
+        private boolean containItems = false;
         private ShelfManager shelfManager;
-        private Integer id;
+        private int id;
         private Shelf shelf = new Shelf();
 
-        public SwingWorkerDeleteShelf(Integer id) {
+        public SwingWorkerDeleteShelf(int id) {
             this.id = id;
         }
 
@@ -336,9 +313,10 @@ public class MainWindow extends JFrame {
             try {
                     shelf = shelfManager.findShelfById(id);
                     if (warehouseManager.listAllItemsOnShelf(shelf).size() != 0) {
-                        return null;
+                        containItems = true;
+                    } else {
+                        shelfManager.deleteShelf(shelf);
                     }
-                    shelfManager.deleteShelf(shelf);
             } catch (MethodFailureException ex) {
                 logger.error(ex.getMessage(), ex);
                 throw new ExecutionException(ex);
@@ -349,10 +327,11 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
-                if (get() == null) {
-                    JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("shelfNotEmpty"), JOptionPane.INFORMATION_MESSAGE);
+                get();
+                if (containItems) {
+                    JOptionPane.showMessageDialog(window, printOut("shelfNotEmpty"), printOut("error"), JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(window, printOut("deleteShelfSuccess"), printOut("deleted"), JOptionPane.INFORMATION_MESSAGE);
                 }
@@ -362,20 +341,105 @@ public class MainWindow extends JFrame {
             }
 
             deleteShelfButton.setEnabled(true);
-            swingWorkerDeleteShelf = null;
         }
     }
 
     private void updateItemButtonActionPerformed(ActionEvent e) {
+        if (itemsTable.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, printOut("notSelectedRowEdit"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int id = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
+        SwingWorkerLoadItem swingWorker = new SwingWorkerLoadItem(id);
+        swingWorker.execute();
 
         updateItemFrame = new InsertItemFrame();
         updateItemFrame.setVisible(true);
+        disableAllButtons();
+    }
+
+    class SwingWorkerLoadItem extends SwingWorker<Item, Void> {
+        private int id;
+
+        public SwingWorkerLoadItem(int id) {
+            this.id = id;
+        }
+
+        @Override
+        protected Item doInBackground() throws Exception {
+            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
+            ItemManager itemManager = springContext.getBean("itemManager", ItemManagerImpl.class);
+            try {
+                return itemManager.findItemById(id);
+            } catch (MethodFailureException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new ExecutionException(ex);
+            }
+        }
+
+        @Override
+        protected void done() {
+            try {
+                Item item = get();
+                updateItemFrame.weightSpinner.setValue(item.getWeight());
+                updateItemFrame.storeDaysSpinner.setValue(item.getStoreDays());
+                updateItemFrame.dangerousCheckBox.setSelected(item.isDangerous());
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(e.getMessage(), e);
+                JOptionPane.showMessageDialog(window, printOut("readingDB"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void updateShelfButtonActionPerformed(ActionEvent e) {
+        if (shelvesTable.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, printOut("notSelectedRowEdit"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int id = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+        SwingWorkerLoadShelf swingWorker = new SwingWorkerLoadShelf(id);
+        swingWorker.execute();
 
         updateShelfFrame = new InsertShelfFrame();
         updateShelfFrame.setVisible(true);
+        disableAllButtons();
+    }
+
+    class SwingWorkerLoadShelf extends SwingWorker<Shelf, Void> {
+        private int id;
+
+        public SwingWorkerLoadShelf(int id) {
+            this.id = id;
+        }
+
+        @Override
+        protected Shelf doInBackground() throws Exception {
+            ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
+            ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
+            try {
+                return shelfManager.findShelfById(id);
+            } catch (MethodFailureException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new ExecutionException(ex);
+            }
+        }
+
+        @Override
+        protected void done() {
+            try {
+                Shelf shelf = get();
+                updateShelfFrame.columnSpinner.setValue(shelf.getColumn());
+                updateShelfFrame.rowSpinner.setValue(shelf.getRow());
+                updateShelfFrame.maxWeightSpinner.setValue(shelf.getMaxWeight());
+                updateShelfFrame.capacitySpinner.setValue(shelf.getCapacity());
+                updateShelfFrame.secureCheckBox.setSelected(shelf.isSecure());
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(e.getMessage(), e);
+                JOptionPane.showMessageDialog(window, printOut("readingDB"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private String getExpirationTime(Date insertionDate, int storeDays) {
@@ -387,7 +451,7 @@ public class MainWindow extends JFrame {
         return myFormat.format(cal.getTime());
     }
 
-    private void listAllItems() {
+    private void listAllItems(int selectedItem) {
 
         DefaultTableModel model = (DefaultTableModel) itemsTable.getModel();
         model.setRowCount(0);
@@ -416,10 +480,11 @@ public class MainWindow extends JFrame {
                 model.addRow(new Object[]{i.getId(), i.getWeight(), getExpirationTime(insertionDate, storeDays),
                         i.isDangerous(), cal.getTime().before(new Date()), coords.toString()});
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            if (selectedItem != -1) {
+                itemsTable.setRowSelectionInterval(selectedItem, selectedItem);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -434,10 +499,8 @@ public class MainWindow extends JFrame {
             for (Shelf s : worker.get()) {
                 model.addRow(new Object[]{s.getId(), s.getColumn(), s.getRow(), s.getMaxWeight(), s.getCapacity(), s.isSecure()});
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -474,17 +537,15 @@ public class MainWindow extends JFrame {
             try {
                 list.addAll(shelfManager.listAllShelves());
             } catch (MethodFailureException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
             return list;
         }
     }
 
     private void editItemButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerUpdateItem != null) {
-            logger.error("Operation is already in progress", e);
-            throw new IllegalStateException("Operation is already in progress");
-        }
+        SwingWorkerUpdateItem swingWorker;
+
         Item item = new Item();
         int id = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
         item.setId(id);
@@ -494,12 +555,13 @@ public class MainWindow extends JFrame {
 
         updateItemButton.setEnabled(false);
 
-        swingWorkerUpdateItem = new SwingWorkerUpdateItem(item);
-        swingWorkerUpdateItem.execute();
+        swingWorker = new SwingWorkerUpdateItem(item);
+        swingWorker.execute();
     }
 
 
     class SwingWorkerUpdateItem extends SwingWorker<Item, Void> {
+        private boolean dangerousChanged = false;
         private ItemManager itemManager;
         private Item item;
 
@@ -514,18 +576,23 @@ public class MainWindow extends JFrame {
 
             try {
                 Shelf shelf = warehouseManager.findShelfWithItem(item);
-                double maxWeight=0;
-                for(Item i : itemManager.listAllItems()) {
-                    Shelf s = warehouseManager.findShelfWithItem(i);
-                    if (s != null && s.equals(shelf)) {
-                        maxWeight += i.getWeight();
+                if (shelf != null) {
+                    double totalWeight = 0;
+                    for (Item i : warehouseManager.listAllItemsOnShelf(shelf)) {
+                        totalWeight += i.getWeight();
                     }
-                }
-                maxWeight -= itemManager.findItemById(item.getId()).getWeight();
-                maxWeight += item.getWeight();
-
-                if (shelf.getMaxWeight() >= maxWeight) {
-                    itemManager.updateItem(item);
+                    if (shelf.getMaxWeight() >= (totalWeight - itemManager.findItemById(item.getId()).getWeight())
+                            + item.getWeight()) {
+                        if (item.isDangerous() != itemManager.findItemById(item.getId()).isDangerous()) {
+                            dangerousChanged = true;
+                            warehouseManager.withdrawItemFromShelf(item);
+                            itemManager.updateItem(item);
+                        } else {
+                            itemManager.updateItem(item);
+                        }
+                    } else {
+                        return null;
+                    }
                 } else {
                     return null;
                 }
@@ -539,33 +606,34 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
                 get();
                 if (get() != null) {
                     JOptionPane.showMessageDialog(window, printOut("updateItemSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(window, printOut("weightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(window, printOut("weightOvercome"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+                if (dangerousChanged) {
+                    JOptionPane.showMessageDialog(window, printOut("itemDroped"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
             }
             updateItemFrame.dispose();
-            updateItemButton.setEnabled(true);
-            swingWorkerUpdateItem = null;
+            enableAllButtons();
         }
     }
 
     private void cancelInsertItemButtonActionPerformed(ActionEvent e) {
         updateItemFrame.dispose();
+        enableAllButtons();
     }
 
     private void editShelfButtonActionPerformed(ActionEvent e) {
-        if (swingWorkerUpdateShelf != null) {
-            logger.error("Operation is already in progress", e);
-            throw new IllegalStateException("Operation is already in progress");
-        }
+        SwingWorkerUpdateShelf swingWorker;
+
         Shelf shelf = new Shelf();
         int id = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
         shelf.setId(id);
@@ -577,11 +645,14 @@ public class MainWindow extends JFrame {
 
         updateShelfButton.setEnabled(false);
 
-        swingWorkerUpdateShelf = new SwingWorkerUpdateShelf(shelf);
-        swingWorkerUpdateShelf.execute();
+        swingWorker = new SwingWorkerUpdateShelf(shelf);
+        swingWorker.execute();
     }
 
-    class SwingWorkerUpdateShelf extends SwingWorker<Shelf, Void> {
+    class SwingWorkerUpdateShelf extends SwingWorker<List<Item>, Void> {
+        private boolean maxWeight = false;
+        private boolean capcityError = false;
+        private boolean changedSecurity = false;
         private ShelfManager shelfManager;
         private Shelf shelf;
 
@@ -590,26 +661,36 @@ public class MainWindow extends JFrame {
         }
 
         @Override
-        protected Shelf doInBackground() throws Exception {
+        protected List<Item> doInBackground() throws Exception {
             ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
             shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
 
             try {
-                int c = warehouseManager.listAllItemsOnShelf(shelf).size();
-                double w = 0;
-                for (Item i : warehouseManager.listAllItemsOnShelf(shelf)) {
-                    w += i.getWeight();
+                int capacity = warehouseManager.listAllItemsOnShelf(shelf).size();
+                double weight = 0;
+                for (Item item : warehouseManager.listAllItemsOnShelf(shelf)) {
+                    weight += item.getWeight();
                 }
 
-                if (shelf.getMaxWeight() < w ) {
-                    return null;
+                if (shelf.getMaxWeight() < weight ) {
+                    maxWeight = true;
                 }
-                if (shelf.getCapacity() < c) {
-                    return null;
+                if (shelf.getCapacity() < capacity) {
+                    capcityError = true;
                 }
-                shelfManager.updateShelf(shelf);
-                return shelf;
-
+                if (shelf.isSecure() != shelfManager.findShelfById(shelf.getId()).isSecure()) {
+                    changedSecurity = true;
+                    List<Item> list = warehouseManager.listAllItemsOnShelf(shelf);
+                    for (Item item : list) {
+                        warehouseManager.withdrawItemFromShelf(item);
+                    }
+                    shelfManager.updateShelf(shelf);
+                    return list;
+                }
+                if (!maxWeight && !capcityError && !changedSecurity) {
+                    shelfManager.updateShelf(shelf);
+                }
+                return null;
             } catch (MethodFailureException e) {
                 logger.error(e.getMessage(), e);
                 throw new ExecutionException(e);
@@ -619,33 +700,45 @@ public class MainWindow extends JFrame {
         @Override
         protected void done() {
             listAllShelves();
-            listAllItems();
+            listAllItems(-1);
             try {
-                get();
                 if (get() != null) {
+                    itemsPopup(get(), "droppedItemsWindow", null);
+                }
+                if (!maxWeight && !capcityError) {
                     JOptionPane.showMessageDialog(window, printOut("updateShelfSuccess"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(window, printOut("capacityWeightOvercome"), printOut("error"), JOptionPane.INFORMATION_MESSAGE);
+                }
+                if (maxWeight) {
+                    JOptionPane.showMessageDialog(window, printOut("shelfWeight"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+                if (capcityError) {
+                    JOptionPane.showMessageDialog(window, printOut("shelfCapacity"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+                if (changedSecurity) {
+                    JOptionPane.showMessageDialog(window, printOut("dropedItems"), printOut("updated"), JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("updateError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
             }
             updateShelfFrame.dispose();
-            updateShelfButton.setEnabled(true);
-            swingWorkerUpdateShelf = null;
+            enableAllButtons();
         }
 
     }
 
     private void cancelInsertShelfButtonActionPerformed(ActionEvent e) {
         updateShelfFrame.dispose();
+        enableAllButtons();
     }
 
     private void deleteExpiredItesmButtonActionPerformed(ActionEvent e) {
-        SwingWorkerDeleteExpiredItems swingWorker = new SwingWorkerDeleteExpiredItems();
-        swingWorker.execute();
-        deleteExpiredItesmButton.setEnabled(false);
+        int result = JOptionPane.showConfirmDialog(window, printOut("expiredItems"), printOut("warning"), JOptionPane.YES_NO_OPTION);
+        if (result == 0) {
+            SwingWorkerDeleteExpiredItems swingWorker = new SwingWorkerDeleteExpiredItems();
+            swingWorker.execute();
+            deleteExpiredItesmButton.setEnabled(false);
+        }
     }
 
     class SwingWorkerDeleteExpiredItems extends SwingWorker<List<Item>, Void> {
@@ -662,10 +755,13 @@ public class MainWindow extends JFrame {
 
         @Override
         protected void done() {
-            //TODO list with all deleted items
-            listAllItems();
+            listAllItems(-1);
             try {
-                get();
+                if (get().size() == 0) {
+                    JOptionPane.showMessageDialog(window, printOut("nothingDeleted"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    itemsPopup(get(), "deletedItems", null);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
                 JOptionPane.showMessageDialog(window, printOut("deleteError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
@@ -676,34 +772,36 @@ public class MainWindow extends JFrame {
     }
 
     private void putItemWithShelfButtonActionPerformed(ActionEvent e) {
-        System.out.println(shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0).toString());
-        Integer itemId = (Integer)itemsTable.getModel().getValueAt(itemsTable.getSelectedRow(), 0);
-        Integer shelfId = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
+        int itemRow = itemsTable.getSelectedRow();
+        int shelfRow = shelvesTable.getSelectedRow();
 
-        if(itemId == -1) {
-            JOptionPane.showMessageDialog(window, printOut("selectError"), printOut("selectShelfError"), JOptionPane.ERROR_MESSAGE);
-            return;
+        if(itemRow == -1) {
+            JOptionPane.showMessageDialog(window, printOut("selectItemError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+        } else if(shelfRow == -1) {
+            JOptionPane.showMessageDialog(window, printOut("selectShelfError"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+        } else {
+            int itemId = (Integer)itemsTable.getModel().getValueAt(itemRow, 0);
+            int shelfId = (Integer)shelvesTable.getModel().getValueAt(shelfRow, 0);
+
+            SwingWorkerPutItemWithShelf swingWorker = new SwingWorkerPutItemWithShelf(itemId, shelfId, itemRow);
+            swingWorker.execute();
+            putItemWithShelfButton.setEnabled(false);
         }
-
-        if(shelfId == -1) {
-            JOptionPane.showMessageDialog(window, printOut("selectError"), printOut("selectItemError"), JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        SwingWorkerPutItemWithShelf swingWorker = new SwingWorkerPutItemWithShelf(itemId, shelfId);
-        swingWorker.execute();
-        putItemWithShelfButton.setEnabled(false);
     }
 
     class SwingWorkerPutItemWithShelf extends SwingWorker<Void, Void> {
         private boolean already = false;
         private boolean full = true;
+        private boolean overWeight = false;
+        private boolean sameType = true;
         private int itemId;
         private int shelfId;
+        private int selectedItem;
 
-        public SwingWorkerPutItemWithShelf(int itemId, int shelfId) {
+        public SwingWorkerPutItemWithShelf(int itemId, int shelfId, int selectedItem) {
             this.itemId = itemId;
             this.shelfId = shelfId;
+            this.selectedItem = selectedItem;
         }
 
         @Override
@@ -714,15 +812,26 @@ public class MainWindow extends JFrame {
             try {
                 Item item = itemManager.findItemById(itemId);
                 Shelf shelf = shelfManager.findShelfById(shelfId);
-                System.out.println(warehouseManager.listAllItemsOnShelf(shelf).size()+";"+shelf.getCapacity());
+                List<Item> list = warehouseManager.listAllItemsOnShelf(shelf);
                 if (warehouseManager.findShelfWithItem(item) != null) {
                     if (warehouseManager.findShelfWithItem(item).equals(shelf)) {
                         already = true;
                     }
-                } else if (warehouseManager.listAllItemsOnShelf(shelf).size() < shelf.getCapacity()) {
+                }
+                if (list.size() < shelf.getCapacity()) {
                     full = false;
                 }
-                if(!full && !already) {
+                double overalWeight = 0;
+                for (Item items : list) {
+                    overalWeight += items.getWeight();
+                }
+                if (shelf.getMaxWeight() < overalWeight + item.getWeight()) {
+                    overWeight = true;
+                }
+                if (shelf.isSecure() != item.isDangerous()) {
+                    sameType = false;
+                }
+                if(!full && !already && !overWeight && sameType) {
                     warehouseManager.putItemOnShelf(shelf, item);
                 }
             } catch (MethodFailureException e) {
@@ -733,14 +842,23 @@ public class MainWindow extends JFrame {
 
         @Override
         protected void done() {
-            listAllItems();
+            listAllItems(selectedItem);
             try {
                 get();
+                if(!full && !already && !overWeight && sameType) {
+                    JOptionPane.showMessageDialog(window, printOut("itemMoved"), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+                }
                 if (already) {
                     JOptionPane.showMessageDialog(window, printOut("alreadyOnShelf"), printOut("error"), JOptionPane.ERROR_MESSAGE);
                 }
+                if (overWeight && !already) {
+                    JOptionPane.showMessageDialog(window, printOut("moveCapacity"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
                 if (full && !already) {
                     JOptionPane.showMessageDialog(window, printOut("shelfAlreadyFull"), printOut("error"), JOptionPane.ERROR_MESSAGE);
+                }
+                if (!sameType) {
+                    JOptionPane.showMessageDialog(window, printOut("differentSecurity"), printOut("error"), JOptionPane.ERROR_MESSAGE);
                 }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage(), e);
@@ -754,36 +872,34 @@ public class MainWindow extends JFrame {
     private void selectShelfAllItems(MouseEvent e) {
         ApplicationContext springContext = new AnnotationConfigApplicationContext(SpringConfig.class);
         ShelfManager shelfManager = springContext.getBean("shelfManager", ShelfManagerImpl.class);
-        StringBuilder data = new StringBuilder("<html>" +
-                                                    "<table>" +
-                                                        "<thead>" +
-                                                            "<tr>" +
-                                                                "<th>"+ printOut("weight") +"</th>" +
-                                                                "<th>"+ printOut("expiration") +"</th>" +
-                                                                "<th>"+ printOut("dangerous") +"</th>" +
-                                                            "</tr>" +
-                                                        "</thead>");
 
         try {
             int id = (Integer)shelvesTable.getModel().getValueAt(shelvesTable.getSelectedRow(), 0);
-            int count = 0;
-            List<Item> list = warehouseManager.listAllItemsOnShelf(shelfManager.findShelfById(id));
-            for (Item i : list) {
-                data.append("<tr>");
-                    data.append("<td>"+ i.getWeight() +"</td>");
-                    data.append("<td>" + getExpirationTime(i.getInsertionDate(), i.getStoreDays()) + "</td>");
-                    data.append("<td>"+ i.isDangerous() +"</td>");
-                data.append("</tr>");
-                count++;
-            }
-            data.append("</table><p>Space left: "+ (list.size() - count) +"</p></html>");
-            JOptionPane.showMessageDialog(this, data.toString(), printOut("info"), JOptionPane.INFORMATION_MESSAGE);
+            Shelf shelf = shelfManager.findShelfById(id);
+            itemsPopup(warehouseManager.listAllItemsOnShelf(shelf), "listOfAllItems", shelf);
         } catch (MethodFailureException e1) {
-            e1.printStackTrace();
+            logger.error(e1.getMessage(), e1);
         }
     }
 
-    //need control
+    private void itemsPopup(List<Item> list, String windowName, Shelf shelf) {
+        ItemListFrame itemListFrame = new ItemListFrame();
+        itemListFrame.listAllItemsLabel.setText(printOut(windowName));
+        DefaultTableModel model = (DefaultTableModel) itemListFrame.itemsTable.getModel();
+        model.setRowCount(0);
+        for (Item i : list) {
+
+            model.addRow(new Object[]{i.getWeight(), getExpirationTime(i.getInsertionDate(), i.getStoreDays()),
+                    i.isDangerous()});
+        }
+        if (shelf != null) {
+            for (int i = 0; i < shelf.getCapacity() - list.size(); i++) {
+                model.addRow(new Object[]{null, null, null});
+            }
+        }
+        itemListFrame.setVisible(true);
+    }
+
     class ColumnHeaderToolTips extends MouseMotionAdapter {
         TableColumn curCol;
         Map<TableColumn, String> tips = new HashMap<>();
@@ -809,7 +925,28 @@ public class MainWindow extends JFrame {
             }
         }
     }
-    //need control
+
+    private void disableAllButtons() {
+        insertItemButton.setEnabled(false);
+        insertShelfButton.setEnabled(false);
+        deleteExpiredItesmButton.setEnabled(false);
+        putItemWithShelfButton.setEnabled(false);
+        updateItemButton.setEnabled(false);
+        updateShelfButton.setEnabled(false);
+        deleteItemButton.setEnabled(false);
+        deleteShelfButton.setEnabled(false);
+    }
+
+    private void enableAllButtons() {
+        insertItemButton.setEnabled(true);
+        insertShelfButton.setEnabled(true);
+        deleteExpiredItesmButton.setEnabled(true);
+        putItemWithShelfButton.setEnabled(true);
+        updateItemButton.setEnabled(true);
+        updateShelfButton.setEnabled(true);
+        deleteItemButton.setEnabled(true);
+        deleteShelfButton.setEnabled(true);
+    }
 
     private void initComponents() {
 
@@ -1104,7 +1241,31 @@ public class MainWindow extends JFrame {
         }
         itemsTable.removeColumn(itemsTable.getColumnModel().getColumn(0));
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        //need control
+        itemsTable.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    updateItemButtonActionPerformed(new ActionEvent(e.getSource(), e.getID(), e.paramString()));
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+
         JTableHeader itemsHeader = itemsTable.getTableHeader();
 
         ColumnHeaderToolTips itemsTips = new ColumnHeaderToolTips();
@@ -1113,8 +1274,8 @@ public class MainWindow extends JFrame {
             itemsTips.setToolTip(col, (String)col.getHeaderValue());
         }
         itemsHeader.addMouseMotionListener(itemsTips);
-        //need control
-        listAllItems();
+
+        listAllItems(-1);
 
         updateItemButton.setFont(new Font("Century", 0, 14));
         updateItemButton.setText(printOut("updateSelectedItem"));
@@ -1203,7 +1364,7 @@ public class MainWindow extends JFrame {
             public void mouseExited(MouseEvent e) {
             }
         });
-        //need control
+
         JTableHeader shelvesHeader = shelvesTable.getTableHeader();
 
         ColumnHeaderToolTips shelvesTips = new ColumnHeaderToolTips();
@@ -1212,7 +1373,7 @@ public class MainWindow extends JFrame {
             shelvesTips.setToolTip(col, (String)col.getHeaderValue());
         }
         shelvesHeader.addMouseMotionListener(shelvesTips);
-        //need control
+
         listAllShelves();
 
         updateShelfButton.setFont(new Font("Century", 0, 14));
@@ -1775,5 +1936,149 @@ public class MainWindow extends JFrame {
         private JLabel shelfPanelTitleLable1;
         private JPanel submitShelfPanel;
         private JButton cancelInsertShelfButton;
+    }
+
+    class ItemListFrame extends JFrame {
+
+        private Point mouseDownCompCoords;
+
+        public ItemListFrame() {
+            initComponents();
+        }
+
+        private void initComponents() {
+
+            itemsScrollPane = new JScrollPane();
+            itemsTable = new JTable();
+            listAllItemsLabel = new JLabel();
+            insertItemButton = new JButton();
+
+            setUndecorated(true);
+            setResizable(false);
+            getRootPane().setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.black));
+
+            addMouseListener(new MouseListener() {
+                public void mouseReleased(MouseEvent e) {
+                    mouseDownCompCoords = null;
+                }
+
+                public void mousePressed(MouseEvent e) {
+                    mouseDownCompCoords = e.getPoint();
+                }
+
+                public void mouseExited(MouseEvent e) {
+                }
+
+                public void mouseEntered(MouseEvent e) {
+                }
+
+                public void mouseClicked(MouseEvent e) {
+                }
+            });
+
+            addMouseMotionListener(new MouseMotionListener() {
+                public void mouseMoved(MouseEvent e) {
+                }
+
+                public void mouseDragged(MouseEvent e) {
+                    Point currCoords = e.getLocationOnScreen();
+                    setLocation(currCoords.x - mouseDownCompCoords.x, currCoords.y - mouseDownCompCoords.y);
+                }
+            });
+
+            itemsScrollPane.setFont(new Font("Century", 0, 14));
+
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+            itemsTable.setModel(new DefaultTableModel(
+                    new Object[][]{
+
+                    },
+                    new String[]{
+                            printOut("weight"), printOut("expiration"), printOut("dangerous")
+                    }
+            ) {
+                Class[] types = new Class[]{
+                        Double.class, Object.class, Boolean.class
+                };
+                boolean[] canEdit = new boolean[]{
+                        false, false, false
+                };
+
+                public Class getColumnClass(int columnIndex) {
+                    return types[columnIndex];
+                }
+
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return canEdit[columnIndex];
+                }
+            });
+            itemsTable.setColumnSelectionAllowed(false);
+            itemsTable.getTableHeader().setReorderingAllowed(false);
+            itemsScrollPane.setViewportView(itemsTable);
+            if (itemsTable.getColumnModel().getColumnCount() > 0) {
+                itemsTable.getColumnModel().getColumn(0).setResizable(false);
+                itemsTable.getColumnModel().getColumn(1).setResizable(false);
+                itemsTable.getColumnModel().getColumn(2).setResizable(false);
+
+                itemsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+                itemsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+            }
+            itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            JTableHeader itemsHeader = itemsTable.getTableHeader();
+
+            ColumnHeaderToolTips itemsTips = new ColumnHeaderToolTips();
+            for (int c = 0; c < itemsTable.getColumnCount(); c++) {
+                TableColumn col = itemsTable.getColumnModel().getColumn(c);
+                itemsTips.setToolTip(col, (String)col.getHeaderValue());
+            }
+            itemsHeader.addMouseMotionListener(itemsTips);
+
+            itemsScrollPane.setViewportView(itemsTable);
+
+            listAllItemsLabel.setFont(new Font("Century", 0, 14));
+            listAllItemsLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+            insertItemButton.setFont(new Font("Century", 0, 14));
+            insertItemButton.setText(printOut("close"));
+            insertItemButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dispose();
+                }
+            });
+
+            GroupLayout layout = new GroupLayout(getContentPane());
+            getContentPane().setLayout(layout);
+            layout.setHorizontalGroup(
+                    layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(insertItemButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                    .addGap(181, 181, 181)
+                                                    .addComponent(listAllItemsLabel))
+                                            .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 534, GroupLayout.PREFERRED_SIZE))
+                                    .addGap(0, 0, Short.MAX_VALUE))
+            );
+            layout.setVerticalGroup(
+                    layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                    .addComponent(listAllItemsLabel)
+                                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(itemsScrollPane, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(insertItemButton))
+            );
+
+            pack();
+            setLocationRelativeTo(getOwner());
+        }
+
+        private JScrollPane itemsScrollPane;
+        private JTable itemsTable;
+        private JLabel listAllItemsLabel;
+        private JButton insertItemButton;
     }
 }
